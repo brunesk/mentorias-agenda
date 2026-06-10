@@ -13,6 +13,7 @@
     --green: #22c55e; --green-dim: rgba(34,197,94,0.1);
     --red: #ef4444; --red-dim: rgba(239,68,68,0.1);
     --yellow: #f59e0b; --yellow-dim: rgba(245,158,11,0.1);
+    --blue: #3b82f6; --blue-dim: rgba(59,130,246,0.1);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
@@ -99,10 +100,41 @@
   .badge { font-size:10px; font-weight:800; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:1px; }
   .badge-hoje { background:var(--orange); color:#fff; }
   .badge-amanha { background:var(--orange-dim); color:var(--orange); }
-  .card-actions { display:flex; gap:8px; }
+  .card-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
   .btn-action { border:1px solid var(--border); border-radius:9px; padding:9px 14px; font-size:12px; font-weight:700; cursor:pointer; background:var(--surface2); color:var(--muted); transition:all 0.2s; white-space:nowrap; }
   .btn-action.del { background:var(--red-dim); color:var(--red); border-color:transparent; }
+  .btn-action.agendar { background:var(--green-dim); color:var(--green); border-color:transparent; }
   .btn-action:hover { opacity:0.7; }
+
+  /* DASHBOARD */
+  .dash-section { margin-bottom:32px; }
+  .dash-section-title { font-size:16px; font-weight:800; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+  .dash-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:20px; }
+  .dash-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:6px; }
+  .dash-card-label { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:1.5px; }
+  .dash-card-value { font-size:28px; font-weight:900; color:var(--orange); line-height:1; }
+  .dash-card-value.green { color:var(--green); }
+  .dash-card-value.blue { color:var(--blue); }
+  .dash-card-value.yellow { color:var(--yellow); }
+  .dash-card-sub { font-size:12px; color:var(--muted); }
+  .mes-input { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:7px 12px; color:var(--text); font-family:'Inter',sans-serif; font-size:13px; font-weight:600; outline:none; cursor:pointer; }
+  .mes-input:focus { border-color:var(--orange); }
+  .dash-lista { display:flex; flex-direction:column; gap:8px; }
+  .dash-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; }
+  .dash-item-left { display:flex; flex-direction:column; gap:4px; }
+  .dash-item-nome { font-size:14px; font-weight:700; }
+  .dash-item-meta { font-size:12px; color:var(--muted); }
+  .dash-item-valor { font-size:14px; font-weight:800; color:var(--green); }
+
+  /* MODAL */
+  #modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center; }
+  #modal-overlay.aberto { display:flex; }
+  .modal-box { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px; width:420px; max-width:92vw; }
+  .modal-title { font-size:17px; font-weight:800; margin-bottom:4px; }
+  .modal-slot { font-size:13px; color:var(--orange); font-weight:600; margin-bottom:24px; }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .modal-actions .btn { flex:1; }
+  .modal-actions .btn-ghost { flex:0 0 auto; width:auto; padding:13px 22px; }
 
   .empty { text-align:center; padding:60px 20px; color:var(--muted); }
   .empty .icon { font-size:48px; margin-bottom:16px; }
@@ -112,7 +144,8 @@
   ::-webkit-scrollbar { width:6px; }
   ::-webkit-scrollbar-thumb { background:#2a2a2a; border-radius:3px; }
   input[type="date"]::-webkit-calendar-picker-indicator,
-  input[type="time"]::-webkit-calendar-picker-indicator { filter:invert(0.5); cursor:pointer; }
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="month"]::-webkit-calendar-picker-indicator { filter:invert(0.5); cursor:pointer; }
 </style>
 </head>
 <body>
@@ -188,9 +221,30 @@
       <button class="tab active" onclick="setTab('disponiveis',this)">Disponíveis</button>
       <button class="tab" onclick="setTab('agendadas',this)">Agendadas</button>
       <button class="tab" onclick="setTab('todos',this)">Todos</button>
+      <button class="tab" onclick="setTab('dashboard',this)">Dashboard</button>
     </div>
-    <div class="cards-grid" id="lista"><div class="loading">Conectando...</div></div>
+    <div id="lista"><div class="loading">Conectando...</div></div>
   </main>
+</div>
+
+<!-- MODAL AGENDAR MANUALMENTE -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">Agendar manualmente</div>
+    <div class="modal-slot" id="modal-slot-info"></div>
+    <div class="field">
+      <label>Nome do cliente</label>
+      <input type="text" id="modal-nome" placeholder="Ex: João Silva" />
+    </div>
+    <div class="field">
+      <label>WhatsApp</label>
+      <input type="tel" id="modal-tel" placeholder="Ex: (11) 99999-9999" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-orange" id="btn-confirmar-modal" onclick="confirmarAgendamentoManual()">Confirmar agendamento</button>
+      <button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -200,6 +254,10 @@
   let tabAtual = 'disponiveis';
   let todosSlots = {};
   let configAtual = {};
+  let slotParaAgendar = null;
+
+  const hoje = new Date();
+  let mesDashboard = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
 
   document.getElementById('link-cliente').textContent = URL_BASE + '/agendar.html';
 
@@ -225,11 +283,8 @@
   async function gerarLinkPagamento() {
     const preco = parseFloat(document.getElementById('preco').value);
     if (!preco || preco < 1) { mostrarAviso('aviso-pagamento', 'Digite um valor válido!', 'erro'); return; }
-
     const btn = document.getElementById('btn-gerar');
-    btn.textContent = 'Gerando...';
-    btn.disabled = true;
-
+    btn.textContent = 'Gerando...'; btn.disabled = true;
     try {
       const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
         method: 'POST',
@@ -245,35 +300,26 @@
           statement_descriptor: 'MENTORIA SHOPEE'
         })
       });
-
       const data = await res.json();
       if (!data.init_point) throw new Error('Erro ao criar preferência');
-
       await fetch(`${DB}/config.json`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ preco, checkoutUrl: data.init_point, checkoutId: data.id, mpToken: MP_TOKEN, atualizadoEm: Date.now() })
       });
-
       document.getElementById('ps-valor').textContent = 'R$ ' + preco;
       document.getElementById('ps-status').textContent = '✓ Link ativo';
       document.getElementById('status-pagamento').style.display = 'flex';
       document.getElementById('status-pagamento').style.flexDirection = 'column';
-      mostrarAviso('aviso-pagamento', '✓ Link de pagamento gerado com sucesso!', 'ok');
-
+      mostrarAviso('aviso-pagamento', '✓ Link de pagamento gerado!', 'ok');
     } catch(e) {
       mostrarAviso('aviso-pagamento', 'Erro ao gerar link. Tente novamente.', 'erro');
     }
-
-    btn.textContent = '⚡ Gerar link de pagamento';
-    btn.disabled = false;
+    btn.textContent = '⚡ Gerar link de pagamento'; btn.disabled = false;
   }
 
   function mostrarAviso(id, msg, tipo) {
     const el = document.getElementById(id);
-    el.textContent = msg;
-    el.className = 'aviso ' + tipo;
-    el.style.display = 'block';
+    el.textContent = msg; el.className = 'aviso ' + tipo; el.style.display = 'block';
     setTimeout(() => el.style.display = 'none', 4000);
   }
 
@@ -312,6 +358,46 @@
     carregarSlots();
   }
 
+  // ─── AGENDAR MANUALMENTE ───────────────────────────────────────────
+  function abrirModalAgendar(id, data, hora) {
+    slotParaAgendar = { id, data, hora };
+    document.getElementById('modal-slot-info').textContent = `📅 ${diaSemanaFull(data)}, ${fmt(data)} às 🕐 ${hora}`;
+    document.getElementById('modal-nome').value = '';
+    document.getElementById('modal-tel').value = '';
+    document.getElementById('modal-overlay').classList.add('aberto');
+    setTimeout(() => document.getElementById('modal-nome').focus(), 100);
+  }
+
+  function fecharModal() {
+    document.getElementById('modal-overlay').classList.remove('aberto');
+    slotParaAgendar = null;
+  }
+
+  async function confirmarAgendamentoManual() {
+    const nome = document.getElementById('modal-nome').value.trim();
+    const tel  = document.getElementById('modal-tel').value.trim();
+    if (!nome || !tel) { alert('Preencha nome e WhatsApp!'); return; }
+    const btn = document.getElementById('btn-confirmar-modal');
+    btn.disabled = true; btn.textContent = 'Confirmando...';
+    try {
+      await fetch(`${DB}/slots/${slotParaAgendar.id}.json`, {
+        method: 'PATCH', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ disponivel: false, clienteNome: nome, clienteTel: tel, agendadoEm: Date.now() })
+      });
+      fecharModal();
+      await carregarSlots();
+    } catch(e) {
+      alert('Erro ao agendar. Tente novamente.');
+    }
+    btn.disabled = false; btn.textContent = 'Confirmar agendamento';
+  }
+
+  // Fecha modal clicando fora
+  document.getElementById('modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharModal();
+  });
+
+  // ─── VALIDAÇÃO ────────────────────────────────────────────────────
   function validarData() {
     const data = document.getElementById('data').value;
     if (!data) return;
@@ -321,8 +407,10 @@
     else aviso.style.display = 'none';
   }
 
+  // ─── RENDER ───────────────────────────────────────────────────────
   function fmt(d) { const [a,m,dia] = d.split('-'); return `${dia}/${m}/${a}`; }
   function diaSemana(d) { return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date(d+'T00:00:00').getDay()]; }
+  function diaSemanaFull(d) { return ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'][new Date(d+'T00:00:00').getDay()]; }
   function getBadge(d) {
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const diff = Math.round((new Date(d+'T00:00:00') - hoje) / 86400000);
@@ -340,27 +428,125 @@
 
   function renderStats() {
     const slots = Object.values(todosSlots);
-    const disp = slots.filter(s => s.disponivel).length;
+    const disp  = slots.filter(s => s.disponivel).length;
     const agend = slots.filter(s => !s.disponivel).length;
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const hj = slots.filter(s => new Date(s.data+'T00:00:00').getTime() === hoje.getTime()).length;
+    const hj = new Date(); hj.setHours(0,0,0,0);
+    const hoje = slots.filter(s => new Date(s.data+'T00:00:00').getTime() === hj.getTime()).length;
     document.getElementById('stats').innerHTML = `
       <div class="stat-card"><span class="stat-label">Disponíveis</span><span class="stat-value">${disp}</span></div>
       <div class="stat-card"><span class="stat-label">Agendadas</span><span class="stat-value green">${agend}</span></div>
-      <div class="stat-card"><span class="stat-label">Hoje</span><span class="stat-value yellow">${hj}</span></div>`;
+      <div class="stat-card"><span class="stat-label">Hoje</span><span class="stat-value yellow">${hoje}</span></div>`;
+  }
+
+  function renderDashboard() {
+    const slots  = Object.values(todosSlots);
+    const preco  = parseFloat(configAtual.preco) || 0;
+    const precoFmt = v => v > 0 ? 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
+
+    // Dados do mês selecionado
+    const [anoSel, mesSel] = mesDashboard.split('-');
+    const doMes    = slots.filter(s => { const [a,m] = s.data.split('-'); return a === anoSel && m === mesSel && !s.disponivel; });
+    const fatMes   = doMes.length * preco;
+
+    // Dados gerais
+    const agendadas  = slots.filter(s => !s.disponivel);
+    const realizadas = agendadas.filter(s => new Date(s.data+'T23:59:59') < new Date());
+    const futuras    = agendadas.filter(s => new Date(s.data+'T00:00:00') >= new Date(new Date().toDateString()));
+    const totalFat   = agendadas.length * preco;
+
+    // Meses únicos com mentorias
+    const mesesAtivos = new Set(agendadas.map(s => s.data.substring(0,7))).size || 1;
+    const media       = agendadas.length / mesesAtivos;
+
+    document.getElementById('lista').innerHTML = `
+      <!-- ── MENSAL ── -->
+      <div class="dash-section">
+        <div class="dash-section-title">
+          📅 Dashboard Mensal
+          <input type="month" class="mes-input" value="${mesDashboard}" onchange="atualizarMes(this.value)" />
+        </div>
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-card-label">Mentorias no mês</div>
+            <div class="dash-card-value green">${doMes.length}</div>
+            <div class="dash-card-sub">${doMes.length === 1 ? '1 sessão' : doMes.length + ' sessões'}</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label">Faturamento estimado</div>
+            <div class="dash-card-value" style="font-size:${fatMes >= 1000 ? '20px' : '28px'}">${precoFmt(fatMes)}</div>
+            <div class="dash-card-sub">R$ ${preco || '—'} × ${doMes.length} mentoria${doMes.length !== 1 ? 's' : ''}</div>
+          </div>
+        </div>
+        ${doMes.length === 0
+          ? `<div class="empty" style="padding:30px;"><div class="icon">📭</div><p>Nenhuma mentoria neste mês.</p></div>`
+          : `<div class="dash-lista">${doMes.sort((a,b) => a.data.localeCompare(b.data)).map(s => `
+              <div class="dash-item">
+                <div class="dash-item-left">
+                  <div class="dash-item-nome">${s.clienteNome || 'Cliente sem nome'}</div>
+                  <div class="dash-item-meta">📅 ${diaSemanaFull(s.data)}, ${fmt(s.data)} · 🕐 ${s.hora}${s.clienteTel ? ' · 📱 ' + s.clienteTel : ''}</div>
+                </div>
+                <div class="dash-item-valor">${precoFmt(preco)}</div>
+              </div>`).join('')}</div>`
+        }
+      </div>
+
+      <!-- ── GERAL ── -->
+      <div class="dash-section">
+        <div class="dash-section-title">📊 Dashboard Geral</div>
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-card-label">Total de mentorias</div>
+            <div class="dash-card-value">${agendadas.length}</div>
+            <div class="dash-card-sub">desde o início</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label">Faturamento total</div>
+            <div class="dash-card-value green" style="font-size:${totalFat >= 10000 ? '18px' : '24px'}">${precoFmt(totalFat)}</div>
+            <div class="dash-card-sub">estimado</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label">Já realizadas</div>
+            <div class="dash-card-value blue">${realizadas.length}</div>
+            <div class="dash-card-sub">datas passadas</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label">A realizar</div>
+            <div class="dash-card-value yellow">${futuras.length}</div>
+            <div class="dash-card-sub">próximas sessões</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label">Média mensal</div>
+            <div class="dash-card-value" style="font-size:22px;">${media.toFixed(1)}</div>
+            <div class="dash-card-sub">mentorias/mês</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label">Meses ativos</div>
+            <div class="dash-card-value" style="color:var(--muted); font-size:22px;">${mesesAtivos}</div>
+            <div class="dash-card-sub">com atividade</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function atualizarMes(valor) {
+    mesDashboard = valor;
+    renderDashboard();
   }
 
   function render() {
     renderStats();
+    if (tabAtual === 'dashboard') { renderDashboard(); return; }
+
     let slots = Object.entries(todosSlots).map(([id,s]) => ({id,...s})).sort((a,b) => (a.data+a.hora).localeCompare(b.data+b.hora));
     if (tabAtual === 'disponiveis') slots = slots.filter(s => s.disponivel);
-    if (tabAtual === 'agendadas') slots = slots.filter(s => !s.disponivel);
+    if (tabAtual === 'agendadas')   slots = slots.filter(s => !s.disponivel);
+
     const lista = document.getElementById('lista');
     if (slots.length === 0) {
       lista.innerHTML = `<div class="empty"><div class="icon">📭</div><p>${tabAtual === 'disponiveis' ? 'Nenhum horário disponível.' : 'Nenhuma mentoria agendada.'}</p></div>`;
       return;
     }
-    lista.innerHTML = slots.map(s => `
+    lista.innerHTML = `<div class="cards-grid">${slots.map(s => `
       <div class="card ${s.disponivel ? 'disponivel' : 'agendada'}">
         <div class="card-left">
           <div class="card-status ${s.disponivel ? 'orange' : 'green'}">${s.disponivel ? 'Disponível' : 'Agendada'}</div>
@@ -372,15 +558,15 @@
           </div>
         </div>
         <div class="card-actions">
+          ${s.disponivel ? `<button class="btn-action agendar" onclick="abrirModalAgendar('${s.id}','${s.data}','${s.hora}')">+ Agendar</button>` : ''}
           <button class="btn-action del" onclick="deletarSlot('${s.id}')">Remover</button>
         </div>
-      </div>`).join('');
+      </div>`).join('')}</div>`;
   }
 
   const d = new Date();
   document.getElementById('dataHoje').textContent = d.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-  // Setup inicial do token
   if (!localStorage.getItem('mp_token')) {
     const token = prompt('Cole aqui o seu Access Token do Mercado Pago (começa com APP_USR-):');
     if (token && token.startsWith('APP_USR-')) {
