@@ -175,20 +175,31 @@
 
   async function init() {
     const params = new URLSearchParams(window.location.search);
-    const status = params.get('status') || params.get('collection_status');
-    const paymentId = params.get('payment_id') || params.get('collection_id');
+    const status           = params.get('status');
+    const collectionStatus = params.get('collection_status');
+    const paymentId        = params.get('payment_id') || params.get('collection_id');
+    const statusFinal      = status || collectionStatus || '';
 
     // Carrega config (preço + link)
-    const resConfig = await fetch(`${DB}/config.json`);
-    const config = (await resConfig.json()) || {};
-    if (config.preco) document.getElementById('preco-display').textContent = config.preco;
-    if (config.checkoutUrl) document.getElementById('btn-pagar').href = config.checkoutUrl;
+    try {
+      const resConfig = await fetch(`${DB}/config.json`);
+      const config = (await resConfig.json()) || {};
+      if (config.preco) document.getElementById('preco-display').textContent = config.preco;
+      if (config.checkoutUrl) document.getElementById('btn-pagar').href = config.checkoutUrl;
+    } catch(e) {}
 
-    if (status === 'approved' && paymentId) {
+    // Veio do Mercado Pago com pagamento aprovado
+    const aprovado = statusFinal === 'approved' || collectionStatus === 'approved';
+    const pendente = statusFinal === 'pending' || statusFinal === 'in_process' || collectionStatus === 'pending';
+
+    if (paymentId && aprovado) {
       mostrarAgendamento();
-    } else if (status === 'pending' || status === 'in_process') {
+    } else if (paymentId && pendente) {
       document.getElementById('tela-pagamento').style.display = 'none';
       document.getElementById('tela-pendente').style.display = 'block';
+    } else if (paymentId) {
+      // Veio do MP mas status desconhecido — mostra agendamento por segurança
+      mostrarAgendamento();
     } else {
       document.getElementById('tela-pagamento').style.display = 'block';
     }
