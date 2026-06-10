@@ -206,18 +206,40 @@
 
     const aprovado = statusFinal === 'approved' || collectionStatus === 'approved';
     const pendente = statusFinal === 'pending' || statusFinal === 'in_process' || collectionStatus === 'pending';
+    const isPix = params.get('payment_type') === 'bank_transfer';
 
     if (paymentId && aprovado) {
+      // Cartão — aprovado na hora
       mostrarAgendamento();
+    } else if (paymentId && pendente && isPix) {
+      // Pix — libera calendário com contador regressivo
+      mostrarContadorPix();
     } else if (paymentId && pendente) {
       document.getElementById('tela-pagamento').style.display = 'none';
       document.getElementById('tela-pendente').style.display = 'block';
-      if (mpToken) iniciarPolling(paymentId, mpToken);
     } else if (paymentId) {
       mostrarAgendamento();
     } else {
       document.getElementById('tela-pagamento').style.display = 'block';
     }
+  }
+
+  function mostrarContadorPix() {
+    document.getElementById('tela-pagamento').style.display = 'none';
+    document.getElementById('tela-pendente').style.display = 'block';
+    const barra = document.getElementById('barra-progresso');
+    let segundos = 10;
+    const texto = document.querySelector('#tela-pendente h2');
+    texto.textContent = `Pix recebido! Abrindo em ${segundos}s...`;
+    animarBarra();
+    const timer = setInterval(() => {
+      segundos--;
+      texto.textContent = `Pix recebido! Abrindo em ${segundos}s...`;
+      if (segundos <= 0) {
+        clearInterval(timer);
+        mostrarAgendamento();
+      }
+    }, 1000);
   }
 
   function iniciarPolling(paymentId, token) {
