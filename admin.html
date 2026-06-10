@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Mentorias Bruno</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #FF6600;
+    --orange-dim: rgba(255,102,0,0.12);
+    --bg: #0f0f0f;
+    --surface: #181818;
+    --surface2: #222222;
+    --border: #2a2a2a;
+    --text: #f0f0f0;
+    --muted: #666;
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.1);
+    --red-dim: rgba(239,68,68,0.1);
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --yellow-dim: rgba(245,158,11,0.1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 36px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .brand { display: flex; flex-direction: column; gap: 4px; }
+  .brand-tag { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); }
+  .brand-name { font-size: 20px; font-weight: 800; line-height: 1.2; }
+  .brand-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  .stats { display: flex; flex-direction: column; gap: 10px; }
+  .stat-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .stat-value { font-size: 22px; font-weight: 800; color: var(--orange); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.yellow { color: var(--yellow); }
+
+  .form-section { display: flex; flex-direction: column; gap: 14px; }
+  .section-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+  .field input, .field select {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    font-size: 14px; font-family: 'Inter', sans-serif;
+    color: var(--text); outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--orange); }
+  .field select option { background: #222; }
+  .field input::placeholder { color: #444; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .hint { font-size: 11px; color: var(--muted); line-height: 1.5; padding: 10px 12px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); }
+  .hint strong { color: var(--orange); }
+
+  .btn-submit {
+    background: var(--orange); color: #fff; border: none;
+    border-radius: 10px; padding: 14px; font-size: 14px;
+    font-weight: 700; cursor: pointer; width: 100%;
+    transition: opacity 0.2s; letter-spacing: 0.3px;
+  }
+  .btn-submit:hover { opacity: 0.88; }
+
+  .link-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .link-label { font-size: 10px; font-weight: 700; color: var(--orange); letter-spacing: 2px; text-transform: uppercase; }
+  .link-url { font-size: 11px; color: var(--muted); word-break: break-all; line-height: 1.4; }
+  .btn-copy {
+    background: var(--orange-dim); color: var(--orange);
+    border: 1px solid transparent; border-radius: 8px;
+    padding: 8px; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-copy:hover { opacity: 0.8; }
+
+  /* MAIN */
+  .main { padding: 40px; overflow-y: auto; }
+  .main-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border);
+  }
+  .main-title { font-size: 26px; font-weight: 800; }
+  .main-date { font-size: 13px; color: var(--muted); }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 28px;
+    background: var(--surface); padding: 4px; border-radius: 12px;
+    width: fit-content; border: 1px solid var(--border);
+  }
+  .tab {
+    padding: 8px 20px; border-radius: 9px; font-size: 13px;
+    font-weight: 600; cursor: pointer; color: var(--muted);
+    transition: all 0.2s; border: none; background: none;
+  }
+  .tab.active { background: var(--orange); color: #fff; }
+
+  .cards-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px 24px;
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 16px; align-items: center;
+    position: relative; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .card::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px;
+  }
+  .card.disponivel::before { background: var(--orange); }
+  .card.agendada::before { background: var(--green); }
+  .card:hover { border-color: #333; }
+
+  .card-left { display: flex; flex-direction: column; gap: 8px; }
+  .card-status { font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+  .card-status.orange { color: var(--orange); }
+  .card-status.green { color: var(--green); }
+
+  .card-name { font-size: 17px; font-weight: 700; }
+  .card-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px 12px;
+    font-size: 12px; font-weight: 600; color: var(--muted);
+  }
+  .chip.orange { background: var(--orange-dim); border-color: transparent; color: var(--orange); }
+  .chip.green { background: var(--green-dim); border-color: transparent; color: var(--green); }
+
+  .badge { font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; }
+  .badge-hoje { background: var(--orange); color: #fff; }
+  .badge-amanha { background: var(--orange-dim); color: var(--orange); }
+
+  .card-actions { display: flex; gap: 8px; }
+  .btn-action {
+    border: 1px solid var(--border); border-radius: 9px;
+    padding: 9px 14px; font-size: 12px; font-weight: 700;
+    cursor: pointer; background: var(--surface2); color: var(--muted);
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-action.del { background: var(--red-dim); color: var(--red); border-color: transparent; }
+  .btn-action:hover { opacity: 0.7; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty p { font-size: 15px; line-height: 1.6; }
+
+  .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-tag">Admin</span>
+      <span class="brand-name">Agenda de<br>Mentorias</span>
+      <span class="brand-sub">Bruno Ferracini</span>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="loading">Carregando...</div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-title">Novo horário disponível</div>
+
+      <div class="hint">
+        <strong>Regras:</strong> Sem quartas-feiras · Após 18h (exceto sáb manhã) · 1 por dia
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Data</label>
+          <input type="date" id="data" onchange="validarData()" />
+        </div>
+        <div class="field">
+          <label>Horário</label>
+          <select id="hora">
+            <option value="">Selecione</option>
+            <option value="18:00">18:00</option>
+            <option value="19:00">19:00</option>
+            <option value="20:00">20:00</option>
+            <option value="21:00">21:00</option>
+            <option value="09:00">09:00 (sáb)</option>
+            <option value="10:00">10:00 (sáb)</option>
+            <option value="11:00">11:00 (sáb)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="aviso-data" style="display:none; font-size:12px; color:#ef4444; padding: 8px 12px; background: var(--red-dim); border-radius:8px;"></div>
+
+      <button class="btn-submit" onclick="adicionarSlot()">+ Liberar horário</button>
+    </div>
+
+    <div class="link-box">
+      <div class="link-label">Link para o cliente</div>
+      <div class="link-url" id="link-cliente">Carregando...</div>
+      <button class="btn-copy" onclick="copiarLink()">Copiar link</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <div class="main-title">Horários e reservas</div>
+      <div class="main-date" id="dataHoje"></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="setTab('disponiveis', this)">Disponíveis</button>
+      <button class="tab" onclick="setTab('agendadas', this)">Agendadas</button>
+      <button class="tab" onclick="setTab('todos', this)">Todos</button>
+    </div>
+
+    <div class="cards-grid" id="lista">
+      <div class="loading">Conectando ao Firebase...</div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  const DB = 'https://mentorias-bruno-default-rtdb.firebaseio.com/slots';
+  let tabAtual = 'disponiveis';
+  let todosSlots = {};
+
+  const linkCliente = window.location.href.replace('admin.html', 'agendar.html');
+  document.getElementById('link-cliente').textContent = linkCliente;
+
+  function copiarLink() {
+    navigator.clipboard.writeText(linkCliente);
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✓ Copiado!';
+    setTimeout(() => btn.textContent = 'Copiar link', 2000);
+  }
+
+  async function carregarSlots() {
+    try {
+      const res = await fetch(`${DB}.json`);
+      todosSlots = (await res.json()) || {};
+      render();
+    } catch(e) {
+      document.getElementById('lista').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Erro ao conectar. Verifique sua internet.</p></div>';
+    }
+  }
+
+  async function adicionarSlot() {
+    const data = document.getElementById('data').value;
+    const hora = document.getElementById('hora').value;
+    if (!data || !hora) { alert('Selecione data e horário!'); return; }
+
+    const d = new Date(data + 'T00:00:00');
+    const diaSemana = d.getDay();
+
+    if (diaSemana === 3) { alert('Bruno não dá mentoria às quartas!'); return; }
+
+    const hNum = parseInt(hora.split(':')[0]);
+    if (diaSemana === 6) {
+      if (hNum >= 13) { alert('Sábado só de manhã (até 12h)!'); return; }
+    } else {
+      if (hNum < 18) { alert('Horários após 18h apenas!'); return; }
+    }
+
+    // Verifica se já tem slot nessa data
+    const jaTemNaData = Object.values(todosSlots).some(s => s.data === data);
+    if (jaTemNaData) { alert('Já existe um horário para essa data!'); return; }
+
+    const slot = { data, hora, disponivel: true, clienteNome: null, clienteTel: null, criadoEm: Date.now() };
+    await fetch(`${DB}.json`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(slot)
+    });
+
+    document.getElementById('data').value = '';
+    document.getElementById('hora').value = '';
+    document.getElementById('aviso-data').style.display = 'none';
+    carregarSlots();
+  }
+
+  async function deletarSlot(id) {
+    if (!confirm('Remover este horário?')) return;
+    await fetch(`${DB}/${id}.json`, { method: 'DELETE' });
+    carregarSlots();
+  }
+
+  function validarData() {
+    const data = document.getElementById('data').value;
+    if (!data) return;
+    const d = new Date(data + 'T00:00:00');
+    const aviso = document.getElementById('aviso-data');
+    if (d.getDay() === 3) {
+      aviso.textContent = '⚠️ Quarta-feira — Bruno não dá mentoria nesse dia.';
+      aviso.style.display = 'block';
+    } else {
+      aviso.style.display = 'none';
+    }
+  }
+
+  function fmt(dataStr) {
+    const [a,m,d] = dataStr.split('-');
+    return `${d}/${m}/${a}`;
+  }
+
+  function diaSemanaStr(dataStr) {
+    const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    return dias[new Date(dataStr + 'T00:00:00').getDay()];
+  }
+
+  function getBadge(dataStr) {
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const d = new Date(dataStr + 'T00:00:00');
+    const diff = Math.round((d - hoje) / 86400000);
+    if (diff === 0) return '<span class="badge badge-hoje">Hoje</span>';
+    if (diff === 1) return '<span class="badge badge-amanha">Amanhã</span>';
+    return '';
+  }
+
+  function setTab(tab, el) {
+    tabAtual = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    render();
+  }
+
+  function renderStats() {
+    const slots = Object.values(todosSlots);
+    const disponiveis = slots.filter(s => s.disponivel).length;
+    const agendadas = slots.filter(s => !s.disponivel).length;
+
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const hojeCount = slots.filter(s => {
+      const d = new Date(s.data + 'T00:00:00');
+      return d.getTime() === hoje.getTime();
+    }).length;
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat-card"><span class="stat-label">Disponíveis</span><span class="stat-value">${disponiveis}</span></div>
+      <div class="stat-card"><span class="stat-label">Agendadas</span><span class="stat-value green">${agendadas}</span></div>
+      <div class="stat-card"><span class="stat-label">Hoje</span><span class="stat-value yellow">${hojeCount}</span></div>`;
+  }
+
+  function render() {
+    renderStats();
+    const lista = document.getElementById('lista');
+    let slots = Object.entries(todosSlots)
+      .map(([id, s]) => ({ id, ...s }))
+      .sort((a,b) => (a.data+a.hora).localeCompare(b.data+b.hora));
+
+    if (tabAtual === 'disponiveis') slots = slots.filter(s => s.disponivel);
+    if (tabAtual === 'agendadas') slots = slots.filter(s => !s.disponivel);
+
+    if (slots.length === 0) {
+      lista.innerHTML = `<div class="empty"><div class="icon">📭</div><p>${tabAtual === 'disponiveis' ? 'Nenhum horário disponível.<br>Adicione um pelo painel ao lado.' : 'Nenhuma mentoria agendada ainda.'}</p></div>`;
+      return;
+    }
+
+    lista.innerHTML = slots.map(s => `
+      <div class="card ${s.disponivel ? 'disponivel' : 'agendada'}">
+        <div class="card-left">
+          <div class="card-status ${s.disponivel ? 'orange' : 'green'}">${s.disponivel ? 'Disponível' : 'Agendada'}</div>
+          <div class="card-name">
+            ${s.disponivel ? 'Horário livre' : s.clienteNome}
+            ${getBadge(s.data)}
+          </div>
+          <div class="card-meta">
+            <div class="chip orange">📅 ${diaSemanaStr(s.data)}, ${fmt(s.data)}</div>
+            <div class="chip orange">🕐 ${s.hora}</div>
+            ${!s.disponivel && s.clienteTel ? `<div class="chip green">📱 ${s.clienteTel}</div>` : ''}
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action del" onclick="deletarSlot('${s.id}')">Remover</button>
+        </div>
+      </div>`).join('');
+  }
+
+  const d = new Date();
+  document.getElementById('dataHoje').textContent =
+    d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  carregarSlots();
+  setInterval(carregarSlots, 15000);
+</script>
+</body>
+</html>
