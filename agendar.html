@@ -137,8 +137,15 @@
   <!-- TELA 2: PENDENTE -->
   <div id="tela-pendente">
     <div class="icon">⏳</div>
-    <h2>Pagamento em análise</h2>
-    <p>Seu pagamento está sendo processado.<br>Assim que confirmado, a página abrirá automaticamente para você escolher seu horário.<br><br>Em caso de dúvidas, fale com a gente pelo Instagram <strong style="color:var(--orange)">@brunoferracini</strong></p>
+    <h2>Aguardando confirmação do Pix</h2>
+    <p>Pague o Pix no seu banco e aguarde.<br>A página vai abrir o calendário <strong style="color:var(--orange)">automaticamente</strong> assim que o pagamento for confirmado.</p>
+    <div style="margin:24px 0; padding:16px; background:var(--surface2); border-radius:12px; border:1px solid var(--border);">
+      <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Verificando pagamento...</div>
+      <div style="height:4px; background:var(--border); border-radius:2px; overflow:hidden;">
+        <div id="barra-progresso" style="height:100%; width:0%; background:var(--orange); border-radius:2px; transition:width 5s linear;"></div>
+      </div>
+    </div>
+    <p style="font-size:13px; color:var(--muted);">Em caso de dúvidas, chame o Bruno no WhatsApp:<br><a id="link-whatsapp" href="#" style="color:var(--orange); font-weight:700; text-decoration:none;">Clique aqui para abrir o WhatsApp</a></p>
   </div>
 
   <!-- TELA 3: AGENDAMENTO -->
@@ -173,6 +180,8 @@
   let slotSelecionado = null;
   let todosSlots = {};
 
+  let pollingInterval = null;
+
   async function init() {
     const params = new URLSearchParams(window.location.search);
     const status           = params.get('status');
@@ -180,15 +189,21 @@
     const paymentId        = params.get('payment_id') || params.get('collection_id');
     const statusFinal      = status || collectionStatus || '';
 
-    // Carrega config (preço + link)
+    // Carrega config
+    let mpToken = '';
     try {
       const resConfig = await fetch(`${DB}/config.json`);
       const config = (await resConfig.json()) || {};
       if (config.preco) document.getElementById('preco-display').textContent = config.preco;
       if (config.checkoutUrl) document.getElementById('btn-pagar').href = config.checkoutUrl;
+      if (config.mpToken) mpToken = config.mpToken;
+      if (config.whatsapp) {
+        const num = config.whatsapp.replace(/\D/g,'');
+        document.getElementById('link-whatsapp').href = `https://wa.me/55${num}`;
+        document.getElementById('link-whatsapp').textContent = `WhatsApp ${config.whatsapp}`;
+      }
     } catch(e) {}
 
-    // Veio do Mercado Pago com pagamento aprovado
     const aprovado = statusFinal === 'approved' || collectionStatus === 'approved';
     const pendente = statusFinal === 'pending' || statusFinal === 'in_process' || collectionStatus === 'pending';
 
@@ -197,12 +212,41 @@
     } else if (paymentId && pendente) {
       document.getElementById('tela-pagamento').style.display = 'none';
       document.getElementById('tela-pendente').style.display = 'block';
+      if (mpToken) iniciarPolling(paymentId, mpToken);
     } else if (paymentId) {
-      // Veio do MP mas status desconhecido — mostra agendamento por segurança
       mostrarAgendamento();
     } else {
       document.getElementById('tela-pagamento').style.display = 'block';
     }
+  }
+
+  function iniciarPolling(paymentId, token) {
+    animarBarra();
+    pollingInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.status === 'approved') {
+          clearInterval(pollingInterval);
+          mostrarAgendamento();
+        } else {
+          animarBarra();
+        }
+      } catch(e) {}
+    }, 5000);
+  }
+
+  function animarBarra() {
+    const barra = document.getElementById('barra-progresso');
+    if (!barra) return;
+    barra.style.transition = 'none';
+    barra.style.width = '0%';
+    setTimeout(() => {
+      barra.style.transition = 'width 5s linear';
+      barra.style.width = '100%';
+    }, 50);
   }
 
   async function mostrarAgendamento() {
