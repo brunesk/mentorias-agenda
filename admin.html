@@ -252,7 +252,7 @@
       await fetch(`${DB}/config.json`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preco, checkoutUrl: data.init_point, checkoutId: data.id, atualizadoEm: Date.now() })
+        body: JSON.stringify({ preco, checkoutUrl: data.init_point, checkoutId: data.id, mpToken: MP_TOKEN, atualizadoEm: Date.now() })
       });
 
       document.getElementById('ps-valor').textContent = 'R$ ' + preco;
