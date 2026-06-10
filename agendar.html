@@ -25,12 +25,6 @@
 
   /* TELA PAGAMENTO */
   #tela-pagamento { display:block; }
-  .preco-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px; margin-bottom:20px; text-align:center; }
-  .preco-label { font-size:12px; color:var(--muted); font-weight:600; letter-spacing:2px; text-transform:uppercase; margin-bottom:12px; }
-  .preco-valor { font-size:52px; font-weight:900; color:var(--orange); line-height:1; margin-bottom:6px; }
-  .preco-moeda { font-size:20px; font-weight:700; color:var(--orange); vertical-align:super; }
-  .preco-sub { font-size:13px; color:var(--muted); margin-top:8px; }
-
   .beneficios { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:20px; }
   .beneficio { display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid var(--border); }
   .beneficio:last-child { border-bottom:none; padding-bottom:0; }
@@ -39,8 +33,21 @@
   .ben-text { font-size:14px; color:var(--text); line-height:1.4; }
   .ben-text strong { color:var(--orange); }
 
-  .btn-pagar { display:block; background:var(--orange); color:#fff; border:none; border-radius:14px; padding:18px; font-size:16px; font-weight:800; cursor:pointer; width:100%; text-align:center; text-decoration:none; transition:opacity 0.2s; letter-spacing:0.3px; margin-bottom:12px; }
-  .btn-pagar:hover { opacity:0.88; }
+  .pagamento-title { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:12px; }
+  .metodos { display:flex; flex-direction:column; gap:12px; margin-bottom:14px; }
+  .metodo { display:flex; align-items:center; gap:16px; background:var(--surface); border:2px solid var(--border); border-radius:16px; padding:18px 20px; text-decoration:none; color:var(--text); transition:all 0.2s; cursor:pointer; }
+  .metodo:hover { border-color:var(--orange); background:#1c1c1c; }
+  .metodo.pix { border-color:rgba(34,197,94,0.3); }
+  .metodo.pix:hover { border-color:var(--green); }
+  .metodo-emoji { font-size:28px; flex-shrink:0; }
+  .metodo-info { flex:1; }
+  .metodo-nome { font-size:15px; font-weight:800; margin-bottom:2px; }
+  .metodo-desc { font-size:12px; color:var(--muted); }
+  .metodo-preco { text-align:right; flex-shrink:0; }
+  .metodo-valor { font-size:20px; font-weight:900; color:var(--orange); line-height:1; }
+  .metodo.pix .metodo-valor { color:var(--green); }
+  .metodo-taxa { font-size:10px; color:var(--muted); margin-top:2px; }
+  .metodo-seta { font-size:18px; color:var(--muted); flex-shrink:0; }
   .seguro { text-align:center; font-size:12px; color:var(--muted); }
 
   /* TELA PENDENTE */
@@ -105,12 +112,6 @@
 
   <!-- TELA 1: PAGAMENTO -->
   <div id="tela-pagamento">
-    <div class="preco-card">
-      <div class="preco-label">Investimento</div>
-      <div class="preco-valor"><span class="preco-moeda">R$</span><span id="preco-display">300</span></div>
-      <div class="preco-sub">Pagamento único · Acesso imediato ao agendamento</div>
-    </div>
-
     <div class="beneficios">
       <div class="beneficio">
         <div class="ben-icon">🎯</div>
@@ -130,8 +131,34 @@
       </div>
     </div>
 
-    <a id="btn-pagar" href="#" class="btn-pagar" target="_blank">Pagar e agendar minha mentoria →</a>
-    <div class="seguro">🔒 Pagamento seguro via Mercado Pago · Pix ou cartão</div>
+    <div class="pagamento-title">Escolha como pagar</div>
+    <div class="metodos">
+      <a id="btn-pix" href="#" class="metodo pix" target="_blank">
+        <div class="metodo-emoji">🟢</div>
+        <div class="metodo-info">
+          <div class="metodo-nome">Pix</div>
+          <div class="metodo-desc">Aprovação na hora</div>
+        </div>
+        <div class="metodo-preco">
+          <div class="metodo-valor">R$ <span id="preco-pix">300</span></div>
+          <div class="metodo-taxa">sem taxa</div>
+        </div>
+        <div class="metodo-seta">→</div>
+      </a>
+      <a id="btn-card" href="#" class="metodo" target="_blank">
+        <div class="metodo-emoji">💳</div>
+        <div class="metodo-info">
+          <div class="metodo-nome">Cartão de crédito</div>
+          <div class="metodo-desc">Taxa de serviço incluída</div>
+        </div>
+        <div class="metodo-preco">
+          <div class="metodo-valor">R$ <span id="preco-card">—</span></div>
+          <div class="metodo-taxa" id="taxa-display"></div>
+        </div>
+        <div class="metodo-seta">→</div>
+      </a>
+    </div>
+    <div class="seguro">🔒 Pagamento seguro via Mercado Pago</div>
   </div>
 
   <!-- TELA 2: PENDENTE -->
@@ -194,8 +221,24 @@
     try {
       const resConfig = await fetch(`${DB}/config.json`);
       const config = (await resConfig.json()) || {};
-      if (config.preco) document.getElementById('preco-display').textContent = config.preco;
-      if (config.checkoutUrl) document.getElementById('btn-pagar').href = config.checkoutUrl;
+
+      // Pix
+      const pixUrl = config.pixUrl || config.checkoutUrl || '#';
+      const pixPreco = config.pixPreco || config.preco || '300';
+      document.getElementById('btn-pix').href = pixUrl;
+      document.getElementById('preco-pix').textContent = parseFloat(pixPreco).toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+      // Cartão
+      const cardUrl = config.cardUrl || config.checkoutUrl || '#';
+      const cardPreco = config.cardPreco || config.preco || '—';
+      document.getElementById('btn-card').href = cardUrl;
+      if (config.cardPreco) {
+        document.getElementById('preco-card').textContent = parseFloat(cardPreco).toLocaleString('pt-BR', {minimumFractionDigits:2});
+        if (config.taxa) document.getElementById('taxa-display').textContent = `+${config.taxa}% taxa MP`;
+      } else if (config.preco) {
+        document.getElementById('preco-card').textContent = parseFloat(config.preco).toLocaleString('pt-BR', {minimumFractionDigits:2});
+      }
+
       if (config.mpToken) mpToken = config.mpToken;
       if (config.whatsapp) {
         const num = config.whatsapp.replace(/\D/g,'');
