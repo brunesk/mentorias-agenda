@@ -7,182 +7,116 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --orange: #FF6600;
-    --orange-dim: rgba(255,102,0,0.12);
-    --bg: #0f0f0f;
-    --surface: #181818;
-    --surface2: #222222;
-    --border: #2a2a2a;
-    --text: #f0f0f0;
-    --muted: #666;
-    --green: #22c55e;
-    --green-dim: rgba(34,197,94,0.1);
-    --red-dim: rgba(239,68,68,0.1);
-    --red: #ef4444;
-    --yellow: #f59e0b;
-    --yellow-dim: rgba(245,158,11,0.1);
+    --orange: #FF6600; --orange-dim: rgba(255,102,0,0.12);
+    --bg: #0f0f0f; --surface: #181818; --surface2: #222;
+    --border: #2a2a2a; --text: #f0f0f0; --muted: #666;
+    --green: #22c55e; --green-dim: rgba(34,197,94,0.1);
+    --red: #ef4444; --red-dim: rgba(239,68,68,0.1);
+    --yellow: #f59e0b; --yellow-dim: rgba(245,158,11,0.1);
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-  .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .app { display:grid; grid-template-columns:300px 1fr; min-height:100vh; }
 
   /* SIDEBAR */
-  .sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 36px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-  }
-  .brand { display: flex; flex-direction: column; gap: 4px; }
-  .brand-tag { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); }
-  .brand-name { font-size: 20px; font-weight: 800; line-height: 1.2; }
-  .brand-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .sidebar { background:var(--surface); border-right:1px solid var(--border); padding:36px 28px; display:flex; flex-direction:column; gap:24px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  .brand { display:flex; flex-direction:column; gap:4px; }
+  .brand-tag { font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--orange); }
+  .brand-name { font-size:20px; font-weight:800; line-height:1.2; }
+  .brand-sub { font-size:13px; color:var(--muted); margin-top:2px; }
 
-  .stats { display: flex; flex-direction: column; gap: 10px; }
-  .stat-card {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px 18px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; }
-  .stat-value { font-size: 22px; font-weight: 800; color: var(--orange); }
-  .stat-value.green { color: var(--green); }
-  .stat-value.yellow { color: var(--yellow); }
+  .stats { display:flex; flex-direction:column; gap:8px; }
+  .stat-card { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; }
+  .stat-label { font-size:12px; color:var(--muted); font-weight:500; }
+  .stat-value { font-size:22px; font-weight:800; color:var(--orange); }
+  .stat-value.green { color:var(--green); }
+  .stat-value.yellow { color:var(--yellow); }
 
-  .form-section { display: flex; flex-direction: column; gap: 14px; }
-  .section-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+  .section-title { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:10px; }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .field label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; }
   .field input, .field select {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 14px;
-    font-size: 14px; font-family: 'Inter', sans-serif;
-    color: var(--text); outline: none; transition: border-color 0.2s;
+    background:var(--surface2); border:1px solid var(--border); border-radius:10px;
+    padding:12px 14px; font-size:14px; font-family:'Inter',sans-serif;
+    color:var(--text); outline:none; transition:border-color 0.2s; width:100%;
   }
-  .field input:focus, .field select:focus { border-color: var(--orange); }
-  .field select option { background: #222; }
-  .field input::placeholder { color: #444; }
+  .field input:focus, .field select:focus { border-color:var(--orange); }
+  .field select option { background:#222; }
+  .field input::placeholder { color:#444; }
+  .row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
-  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hint { font-size:11px; color:var(--muted); line-height:1.5; padding:10px 12px; background:var(--surface2); border-radius:8px; border:1px solid var(--border); }
+  .hint strong { color:var(--orange); }
 
-  .hint { font-size: 11px; color: var(--muted); line-height: 1.5; padding: 10px 12px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); }
-  .hint strong { color: var(--orange); }
+  .btn { border:none; border-radius:10px; padding:13px; font-size:13px; font-weight:700; cursor:pointer; width:100%; transition:opacity 0.2s; letter-spacing:0.3px; }
+  .btn:hover { opacity:0.85; }
+  .btn-orange { background:var(--orange); color:#fff; }
+  .btn-green { background:var(--green-dim); color:var(--green); border:1px solid transparent; }
+  .btn-ghost { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
 
-  .btn-submit {
-    background: var(--orange); color: #fff; border: none;
-    border-radius: 10px; padding: 14px; font-size: 14px;
-    font-weight: 700; cursor: pointer; width: 100%;
-    transition: opacity 0.2s; letter-spacing: 0.3px;
-  }
-  .btn-submit:hover { opacity: 0.88; }
+  .aviso { font-size:12px; padding:8px 12px; border-radius:8px; display:none; }
+  .aviso.erro { color:var(--red); background:var(--red-dim); }
+  .aviso.ok { color:var(--green); background:var(--green-dim); }
 
-  .link-box {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px;
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  .link-label { font-size: 10px; font-weight: 700; color: var(--orange); letter-spacing: 2px; text-transform: uppercase; }
-  .link-url { font-size: 11px; color: var(--muted); word-break: break-all; line-height: 1.4; }
-  .btn-copy {
-    background: var(--orange-dim); color: var(--orange);
-    border: 1px solid transparent; border-radius: 8px;
-    padding: 8px; font-size: 12px; font-weight: 700;
-    cursor: pointer; transition: opacity 0.2s;
-  }
-  .btn-copy:hover { opacity: 0.8; }
+  .link-box { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:8px; }
+  .link-label { font-size:10px; font-weight:700; color:var(--orange); letter-spacing:2px; text-transform:uppercase; }
+  .link-url { font-size:11px; color:var(--muted); word-break:break-all; line-height:1.4; }
+  .btn-copy { background:var(--orange-dim); color:var(--orange); border:1px solid transparent; border-radius:8px; padding:8px; font-size:12px; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+  .btn-copy:hover { opacity:0.8; }
+
+  .pagamento-status { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .ps-row { display:flex; justify-content:space-between; align-items:center; }
+  .ps-label { font-size:12px; color:var(--muted); }
+  .ps-value { font-size:14px; font-weight:700; color:var(--text); }
+  .ps-value.orange { color:var(--orange); }
+  .ps-value.green { color:var(--green); }
 
   /* MAIN */
-  .main { padding: 40px; overflow-y: auto; }
-  .main-header {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border);
-  }
-  .main-title { font-size: 26px; font-weight: 800; }
-  .main-date { font-size: 13px; color: var(--muted); }
+  .main { padding:40px; overflow-y:auto; }
+  .main-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:32px; padding-bottom:24px; border-bottom:1px solid var(--border); }
+  .main-title { font-size:26px; font-weight:800; }
+  .main-date { font-size:13px; color:var(--muted); }
 
-  .tabs {
-    display: flex; gap: 4px; margin-bottom: 28px;
-    background: var(--surface); padding: 4px; border-radius: 12px;
-    width: fit-content; border: 1px solid var(--border);
-  }
-  .tab {
-    padding: 8px 20px; border-radius: 9px; font-size: 13px;
-    font-weight: 600; cursor: pointer; color: var(--muted);
-    transition: all 0.2s; border: none; background: none;
-  }
-  .tab.active { background: var(--orange); color: #fff; }
+  .tabs { display:flex; gap:4px; margin-bottom:28px; background:var(--surface); padding:4px; border-radius:12px; width:fit-content; border:1px solid var(--border); }
+  .tab { padding:8px 20px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; color:var(--muted); transition:all 0.2s; border:none; background:none; }
+  .tab.active { background:var(--orange); color:#fff; }
 
-  .cards-grid { display: flex; flex-direction: column; gap: 12px; }
+  .cards-grid { display:flex; flex-direction:column; gap:12px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px 24px; display:grid; grid-template-columns:1fr auto; gap:16px; align-items:center; position:relative; overflow:hidden; transition:border-color 0.2s; }
+  .card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
+  .card.disponivel::before { background:var(--orange); }
+  .card.agendada::before { background:var(--green); }
+  .card:hover { border-color:#333; }
+  .card-left { display:flex; flex-direction:column; gap:8px; }
+  .card-status { font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; }
+  .card-status.orange { color:var(--orange); }
+  .card-status.green { color:var(--green); }
+  .card-name { font-size:17px; font-weight:700; display:flex; align-items:center; gap:10px; }
+  .card-meta { display:flex; gap:8px; flex-wrap:wrap; }
+  .chip { display:flex; align-items:center; gap:5px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:4px 12px; font-size:12px; font-weight:600; color:var(--muted); }
+  .chip.orange { background:var(--orange-dim); border-color:transparent; color:var(--orange); }
+  .chip.green { background:var(--green-dim); border-color:transparent; color:var(--green); }
+  .badge { font-size:10px; font-weight:800; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:1px; }
+  .badge-hoje { background:var(--orange); color:#fff; }
+  .badge-amanha { background:var(--orange-dim); color:var(--orange); }
+  .card-actions { display:flex; gap:8px; }
+  .btn-action { border:1px solid var(--border); border-radius:9px; padding:9px 14px; font-size:12px; font-weight:700; cursor:pointer; background:var(--surface2); color:var(--muted); transition:all 0.2s; white-space:nowrap; }
+  .btn-action.del { background:var(--red-dim); color:var(--red); border-color:transparent; }
+  .btn-action:hover { opacity:0.7; }
 
-  .card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; padding: 20px 24px;
-    display: grid; grid-template-columns: 1fr auto;
-    gap: 16px; align-items: center;
-    position: relative; overflow: hidden;
-    transition: border-color 0.2s;
-  }
-  .card::before {
-    content: ''; position: absolute;
-    left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px;
-  }
-  .card.disponivel::before { background: var(--orange); }
-  .card.agendada::before { background: var(--green); }
-  .card:hover { border-color: #333; }
+  .empty { text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty .icon { font-size:48px; margin-bottom:16px; }
+  .empty p { font-size:15px; line-height:1.6; }
+  .loading { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
 
-  .card-left { display: flex; flex-direction: column; gap: 8px; }
-  .card-status { font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
-  .card-status.orange { color: var(--orange); }
-  .card-status.green { color: var(--green); }
-
-  .card-name { font-size: 17px; font-weight: 700; }
-  .card-meta { display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip {
-    display: flex; align-items: center; gap: 5px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 4px 12px;
-    font-size: 12px; font-weight: 600; color: var(--muted);
-  }
-  .chip.orange { background: var(--orange-dim); border-color: transparent; color: var(--orange); }
-  .chip.green { background: var(--green-dim); border-color: transparent; color: var(--green); }
-
-  .badge { font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; }
-  .badge-hoje { background: var(--orange); color: #fff; }
-  .badge-amanha { background: var(--orange-dim); color: var(--orange); }
-
-  .card-actions { display: flex; gap: 8px; }
-  .btn-action {
-    border: 1px solid var(--border); border-radius: 9px;
-    padding: 9px 14px; font-size: 12px; font-weight: 700;
-    cursor: pointer; background: var(--surface2); color: var(--muted);
-    transition: all 0.2s; white-space: nowrap;
-  }
-  .btn-action.del { background: var(--red-dim); color: var(--red); border-color: transparent; }
-  .btn-action:hover { opacity: 0.7; }
-
-  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
-  .empty .icon { font-size: 48px; margin-bottom: 16px; }
-  .empty p { font-size: 15px; line-height: 1.6; }
-
-  .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
-
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-thumb { background:#2a2a2a; border-radius:3px; }
   input[type="date"]::-webkit-calendar-picker-indicator,
-  input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+  input[type="time"]::-webkit-calendar-picker-indicator { filter:invert(0.5); cursor:pointer; }
 </style>
 </head>
 <body>
 <div class="app">
-
   <aside class="sidebar">
     <div class="brand">
       <span class="brand-tag">Admin</span>
@@ -190,45 +124,57 @@
       <span class="brand-sub">Bruno Ferracini</span>
     </div>
 
-    <div class="stats" id="stats">
-      <div class="loading">Carregando...</div>
+    <div class="stats" id="stats"><div class="loading">Carregando...</div></div>
+
+    <!-- PAGAMENTO -->
+    <div>
+      <div class="section-title">Configuração de pagamento</div>
+      <div class="field">
+        <label>Valor da mentoria (R$)</label>
+        <input type="number" id="preco" placeholder="300" min="1" />
+      </div>
+      <button class="btn btn-green" onclick="gerarLinkPagamento()" id="btn-gerar">⚡ Gerar link de pagamento</button>
+      <div class="aviso" id="aviso-pagamento" style="margin-top:8px;"></div>
+
+      <div class="pagamento-status" id="status-pagamento" style="margin-top:12px; display:none;">
+        <div class="ps-row"><span class="ps-label">Valor</span><span class="ps-value orange" id="ps-valor">—</span></div>
+        <div class="ps-row"><span class="ps-label">Status</span><span class="ps-value green" id="ps-status">—</span></div>
+      </div>
     </div>
 
-    <div class="form-section">
+    <!-- NOVO HORÁRIO -->
+    <div>
       <div class="section-title">Novo horário disponível</div>
-
-      <div class="hint">
-        <strong>Regras:</strong> Sem quartas-feiras · Após 18h (exceto sáb manhã) · 1 por dia
-      </div>
-
-      <div class="row-2">
-        <div class="field">
-          <label>Data</label>
-          <input type="date" id="data" onchange="validarData()" />
+      <div class="hint"><strong>Regras:</strong> Sem quartas · Após 18h · Sáb de manhã · 1 por dia</div>
+      <div style="margin-top:12px;">
+        <div class="row-2">
+          <div class="field">
+            <label>Data</label>
+            <input type="date" id="data" onchange="validarData()" />
+          </div>
+          <div class="field">
+            <label>Horário</label>
+            <select id="hora">
+              <option value="">Selecione</option>
+              <option value="18:00">18:00</option>
+              <option value="19:00">19:00</option>
+              <option value="20:00">20:00</option>
+              <option value="21:00">21:00</option>
+              <option value="09:00">09:00 (sáb)</option>
+              <option value="10:00">10:00 (sáb)</option>
+              <option value="11:00">11:00 (sáb)</option>
+            </select>
+          </div>
         </div>
-        <div class="field">
-          <label>Horário</label>
-          <select id="hora">
-            <option value="">Selecione</option>
-            <option value="18:00">18:00</option>
-            <option value="19:00">19:00</option>
-            <option value="20:00">20:00</option>
-            <option value="21:00">21:00</option>
-            <option value="09:00">09:00 (sáb)</option>
-            <option value="10:00">10:00 (sáb)</option>
-            <option value="11:00">11:00 (sáb)</option>
-          </select>
-        </div>
+        <div id="aviso-data" class="aviso erro" style="margin-bottom:10px;"></div>
+        <button class="btn btn-orange" onclick="adicionarSlot()">+ Liberar horário</button>
       </div>
-
-      <div id="aviso-data" style="display:none; font-size:12px; color:#ef4444; padding: 8px 12px; background: var(--red-dim); border-radius:8px;"></div>
-
-      <button class="btn-submit" onclick="adicionarSlot()">+ Liberar horário</button>
     </div>
 
+    <!-- LINK CLIENTE -->
     <div class="link-box">
       <div class="link-label">Link para o cliente</div>
-      <div class="link-url" id="link-cliente">Carregando...</div>
+      <div class="link-url" id="link-cliente">—</div>
       <button class="btn-copy" onclick="copiarLink()">Copiar link</button>
     </div>
   </aside>
@@ -238,82 +184,131 @@
       <div class="main-title">Horários e reservas</div>
       <div class="main-date" id="dataHoje"></div>
     </div>
-
     <div class="tabs">
-      <button class="tab active" onclick="setTab('disponiveis', this)">Disponíveis</button>
-      <button class="tab" onclick="setTab('agendadas', this)">Agendadas</button>
-      <button class="tab" onclick="setTab('todos', this)">Todos</button>
+      <button class="tab active" onclick="setTab('disponiveis',this)">Disponíveis</button>
+      <button class="tab" onclick="setTab('agendadas',this)">Agendadas</button>
+      <button class="tab" onclick="setTab('todos',this)">Todos</button>
     </div>
-
-    <div class="cards-grid" id="lista">
-      <div class="loading">Conectando ao Firebase...</div>
-    </div>
+    <div class="cards-grid" id="lista"><div class="loading">Conectando...</div></div>
   </main>
-
 </div>
 
 <script>
-  const DB = 'https://mentorias-bruno-default-rtdb.firebaseio.com/slots';
+  const DB = 'https://mentorias-bruno-default-rtdb.firebaseio.com';
+  const URL_BASE = 'https://brunesk.github.io/mentorias-agenda';
+  const MP_TOKEN = localStorage.getItem('mp_token') || '';
   let tabAtual = 'disponiveis';
   let todosSlots = {};
+  let configAtual = {};
 
-  const linkCliente = window.location.href.replace('admin.html', 'agendar.html');
-  document.getElementById('link-cliente').textContent = linkCliente;
+  document.getElementById('link-cliente').textContent = URL_BASE + '/agendar.html';
 
   function copiarLink() {
-    navigator.clipboard.writeText(linkCliente);
+    navigator.clipboard.writeText(URL_BASE + '/agendar.html');
     const btn = document.querySelector('.btn-copy');
     btn.textContent = '✓ Copiado!';
     setTimeout(() => btn.textContent = 'Copiar link', 2000);
   }
 
+  async function carregarConfig() {
+    const res = await fetch(`${DB}/config.json`);
+    configAtual = (await res.json()) || {};
+    if (configAtual.preco) {
+      document.getElementById('preco').value = configAtual.preco;
+      document.getElementById('ps-valor').textContent = 'R$ ' + configAtual.preco;
+      document.getElementById('ps-status').textContent = configAtual.checkoutUrl ? '✓ Link ativo' : 'Sem link';
+      document.getElementById('status-pagamento').style.display = 'flex';
+      document.getElementById('status-pagamento').style.flexDirection = 'column';
+    }
+  }
+
+  async function gerarLinkPagamento() {
+    const preco = parseFloat(document.getElementById('preco').value);
+    if (!preco || preco < 1) { mostrarAviso('aviso-pagamento', 'Digite um valor válido!', 'erro'); return; }
+
+    const btn = document.getElementById('btn-gerar');
+    btn.textContent = 'Gerando...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${MP_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: [{ title: 'Mentoria — Acelera Shopee', quantity: 1, unit_price: preco, currency_id: 'BRL' }],
+          back_urls: {
+            success: `${URL_BASE}/agendar.html`,
+            failure: `${URL_BASE}/agendar.html`,
+            pending: `${URL_BASE}/agendar.html`
+          },
+          auto_return: 'approved',
+          statement_descriptor: 'MENTORIA SHOPEE'
+        })
+      });
+
+      const data = await res.json();
+      if (!data.init_point) throw new Error('Erro ao criar preferência');
+
+      await fetch(`${DB}/config.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preco, checkoutUrl: data.init_point, checkoutId: data.id, atualizadoEm: Date.now() })
+      });
+
+      document.getElementById('ps-valor').textContent = 'R$ ' + preco;
+      document.getElementById('ps-status').textContent = '✓ Link ativo';
+      document.getElementById('status-pagamento').style.display = 'flex';
+      document.getElementById('status-pagamento').style.flexDirection = 'column';
+      mostrarAviso('aviso-pagamento', '✓ Link de pagamento gerado com sucesso!', 'ok');
+
+    } catch(e) {
+      mostrarAviso('aviso-pagamento', 'Erro ao gerar link. Tente novamente.', 'erro');
+    }
+
+    btn.textContent = '⚡ Gerar link de pagamento';
+    btn.disabled = false;
+  }
+
+  function mostrarAviso(id, msg, tipo) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = 'aviso ' + tipo;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 4000);
+  }
+
   async function carregarSlots() {
     try {
-      const res = await fetch(`${DB}.json`);
+      const res = await fetch(`${DB}/slots.json`);
       todosSlots = (await res.json()) || {};
       render();
-    } catch(e) {
-      document.getElementById('lista').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Erro ao conectar. Verifique sua internet.</p></div>';
-    }
+    } catch(e) {}
   }
 
   async function adicionarSlot() {
     const data = document.getElementById('data').value;
     const hora = document.getElementById('hora').value;
     if (!data || !hora) { alert('Selecione data e horário!'); return; }
-
     const d = new Date(data + 'T00:00:00');
-    const diaSemana = d.getDay();
-
-    if (diaSemana === 3) { alert('Bruno não dá mentoria às quartas!'); return; }
-
-    const hNum = parseInt(hora.split(':')[0]);
-    if (diaSemana === 6) {
-      if (hNum >= 13) { alert('Sábado só de manhã (até 12h)!'); return; }
-    } else {
-      if (hNum < 18) { alert('Horários após 18h apenas!'); return; }
-    }
-
-    // Verifica se já tem slot nessa data
+    const dia = d.getDay();
+    if (dia === 3) { alert('Bruno não dá mentoria às quartas!'); return; }
+    const h = parseInt(hora.split(':')[0]);
+    if (dia === 6) { if (h >= 13) { alert('Sábado só de manhã!'); return; } }
+    else { if (h < 18) { alert('Apenas após 18h!'); return; } }
     const jaTemNaData = Object.values(todosSlots).some(s => s.data === data);
-    if (jaTemNaData) { alert('Já existe um horário para essa data!'); return; }
-
-    const slot = { data, hora, disponivel: true, clienteNome: null, clienteTel: null, criadoEm: Date.now() };
-    await fetch(`${DB}.json`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(slot)
+    if (jaTemNaData) { alert('Já existe horário para essa data!'); return; }
+    await fetch(`${DB}/slots.json`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data, hora, disponivel: true, clienteNome: null, clienteTel: null, criadoEm: Date.now() })
     });
-
     document.getElementById('data').value = '';
     document.getElementById('hora').value = '';
-    document.getElementById('aviso-data').style.display = 'none';
     carregarSlots();
   }
 
   async function deletarSlot(id) {
     if (!confirm('Remover este horário?')) return;
-    await fetch(`${DB}/${id}.json`, { method: 'DELETE' });
+    await fetch(`${DB}/slots/${id}.json`, { method: 'DELETE' });
     carregarSlots();
   }
 
@@ -322,28 +317,15 @@
     if (!data) return;
     const d = new Date(data + 'T00:00:00');
     const aviso = document.getElementById('aviso-data');
-    if (d.getDay() === 3) {
-      aviso.textContent = '⚠️ Quarta-feira — Bruno não dá mentoria nesse dia.';
-      aviso.style.display = 'block';
-    } else {
-      aviso.style.display = 'none';
-    }
+    if (d.getDay() === 3) { aviso.textContent = '⚠️ Quarta-feira — Bruno não dá mentoria.'; aviso.style.display = 'block'; }
+    else aviso.style.display = 'none';
   }
 
-  function fmt(dataStr) {
-    const [a,m,d] = dataStr.split('-');
-    return `${d}/${m}/${a}`;
-  }
-
-  function diaSemanaStr(dataStr) {
-    const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-    return dias[new Date(dataStr + 'T00:00:00').getDay()];
-  }
-
-  function getBadge(dataStr) {
+  function fmt(d) { const [a,m,dia] = d.split('-'); return `${dia}/${m}/${a}`; }
+  function diaSemana(d) { return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date(d+'T00:00:00').getDay()]; }
+  function getBadge(d) {
     const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const d = new Date(dataStr + 'T00:00:00');
-    const diff = Math.round((d - hoje) / 86400000);
+    const diff = Math.round((new Date(d+'T00:00:00') - hoje) / 86400000);
     if (diff === 0) return '<span class="badge badge-hoje">Hoje</span>';
     if (diff === 1) return '<span class="badge badge-amanha">Amanhã</span>';
     return '';
@@ -358,46 +340,33 @@
 
   function renderStats() {
     const slots = Object.values(todosSlots);
-    const disponiveis = slots.filter(s => s.disponivel).length;
-    const agendadas = slots.filter(s => !s.disponivel).length;
-
+    const disp = slots.filter(s => s.disponivel).length;
+    const agend = slots.filter(s => !s.disponivel).length;
     const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const hojeCount = slots.filter(s => {
-      const d = new Date(s.data + 'T00:00:00');
-      return d.getTime() === hoje.getTime();
-    }).length;
-
+    const hj = slots.filter(s => new Date(s.data+'T00:00:00').getTime() === hoje.getTime()).length;
     document.getElementById('stats').innerHTML = `
-      <div class="stat-card"><span class="stat-label">Disponíveis</span><span class="stat-value">${disponiveis}</span></div>
-      <div class="stat-card"><span class="stat-label">Agendadas</span><span class="stat-value green">${agendadas}</span></div>
-      <div class="stat-card"><span class="stat-label">Hoje</span><span class="stat-value yellow">${hojeCount}</span></div>`;
+      <div class="stat-card"><span class="stat-label">Disponíveis</span><span class="stat-value">${disp}</span></div>
+      <div class="stat-card"><span class="stat-label">Agendadas</span><span class="stat-value green">${agend}</span></div>
+      <div class="stat-card"><span class="stat-label">Hoje</span><span class="stat-value yellow">${hj}</span></div>`;
   }
 
   function render() {
     renderStats();
-    const lista = document.getElementById('lista');
-    let slots = Object.entries(todosSlots)
-      .map(([id, s]) => ({ id, ...s }))
-      .sort((a,b) => (a.data+a.hora).localeCompare(b.data+b.hora));
-
+    let slots = Object.entries(todosSlots).map(([id,s]) => ({id,...s})).sort((a,b) => (a.data+a.hora).localeCompare(b.data+b.hora));
     if (tabAtual === 'disponiveis') slots = slots.filter(s => s.disponivel);
     if (tabAtual === 'agendadas') slots = slots.filter(s => !s.disponivel);
-
+    const lista = document.getElementById('lista');
     if (slots.length === 0) {
-      lista.innerHTML = `<div class="empty"><div class="icon">📭</div><p>${tabAtual === 'disponiveis' ? 'Nenhum horário disponível.<br>Adicione um pelo painel ao lado.' : 'Nenhuma mentoria agendada ainda.'}</p></div>`;
+      lista.innerHTML = `<div class="empty"><div class="icon">📭</div><p>${tabAtual === 'disponiveis' ? 'Nenhum horário disponível.' : 'Nenhuma mentoria agendada.'}</p></div>`;
       return;
     }
-
     lista.innerHTML = slots.map(s => `
       <div class="card ${s.disponivel ? 'disponivel' : 'agendada'}">
         <div class="card-left">
           <div class="card-status ${s.disponivel ? 'orange' : 'green'}">${s.disponivel ? 'Disponível' : 'Agendada'}</div>
-          <div class="card-name">
-            ${s.disponivel ? 'Horário livre' : s.clienteNome}
-            ${getBadge(s.data)}
-          </div>
+          <div class="card-name">${s.disponivel ? 'Horário livre' : s.clienteNome} ${getBadge(s.data)}</div>
           <div class="card-meta">
-            <div class="chip orange">📅 ${diaSemanaStr(s.data)}, ${fmt(s.data)}</div>
+            <div class="chip orange">📅 ${diaSemana(s.data)}, ${fmt(s.data)}</div>
             <div class="chip orange">🕐 ${s.hora}</div>
             ${!s.disponivel && s.clienteTel ? `<div class="chip green">📱 ${s.clienteTel}</div>` : ''}
           </div>
@@ -409,9 +378,20 @@
   }
 
   const d = new Date();
-  document.getElementById('dataHoje').textContent =
-    d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('dataHoje').textContent = d.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
+  // Setup inicial do token
+  if (!localStorage.getItem('mp_token')) {
+    const token = prompt('Cole aqui o seu Access Token do Mercado Pago (começa com APP_USR-):');
+    if (token && token.startsWith('APP_USR-')) {
+      localStorage.setItem('mp_token', token);
+      location.reload();
+    } else if (token) {
+      alert('Token inválido. Recarregue a página e tente novamente.');
+    }
+  }
+
+  carregarConfig();
   carregarSlots();
   setInterval(carregarSlots, 15000);
 </script>
