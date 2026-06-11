@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agendar Mentoria — Bruno Ferracini</title>
+<!-- v2 -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -252,37 +253,22 @@
     const isPix = params.get('payment_type') === 'bank_transfer';
 
     if (paymentId && aprovado) {
-      // Cartão — aprovado na hora
+      // Pagamento aprovado — abre calendário
       mostrarAgendamento();
     } else if (paymentId && pendente && isPix) {
-      // Pix — libera calendário com contador regressivo
-      mostrarContadorPix();
-    } else if (paymentId && pendente) {
+      // Pix gerado mas ainda não pago — aguarda polling real antes de abrir
       document.getElementById('tela-pagamento').style.display = 'none';
       document.getElementById('tela-pendente').style.display = 'block';
-    } else if (paymentId) {
-      mostrarAgendamento();
+      animarBarra();
+      if (mpToken) iniciarPolling(paymentId, mpToken);
+    } else if (paymentId && pendente) {
+      // Outro método pendente
+      document.getElementById('tela-pagamento').style.display = 'none';
+      document.getElementById('tela-pendente').style.display = 'block';
     } else {
+      // Sem pagamento, cancelado, rejeitado ou status desconhecido — volta à tela de pagamento
       document.getElementById('tela-pagamento').style.display = 'block';
     }
-  }
-
-  function mostrarContadorPix() {
-    document.getElementById('tela-pagamento').style.display = 'none';
-    document.getElementById('tela-pendente').style.display = 'block';
-    const barra = document.getElementById('barra-progresso');
-    let segundos = 10;
-    const texto = document.querySelector('#tela-pendente h2');
-    texto.textContent = `Pix recebido! Abrindo em ${segundos}s...`;
-    animarBarra();
-    const timer = setInterval(() => {
-      segundos--;
-      texto.textContent = `Pix recebido! Abrindo em ${segundos}s...`;
-      if (segundos <= 0) {
-        clearInterval(timer);
-        mostrarAgendamento();
-      }
-    }, 1000);
   }
 
   function iniciarPolling(paymentId, token) {
