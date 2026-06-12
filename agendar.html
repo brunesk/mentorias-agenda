@@ -110,6 +110,7 @@
     <h1>Mentoria com Bruno</h1>
     <p>Aprenda a vender mais na Shopee com quem já fez.</p>
     <p style="margin-top:10px; font-size:13px; color:#FF6600; font-weight:600;">Conclua o pagamento para acessar as datas disponíveis e fazer seu agendamento.</p>
+    <div id="proxima-data" style="margin-top:12px; min-height:28px;"></div>
   </div>
 
   <!-- TELA 1: PAGAMENTO -->
@@ -304,6 +305,23 @@
   async function mostrarAgendamento() {
     document.getElementById('tela-pagamento').style.display = 'none';
     document.getElementById('tela-agendamento').style.display = 'block';
+
+    // Bloqueia segundo agendamento com o mesmo pagamento
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get('payment_id') || params.get('collection_id');
+    if (pid) {
+      const jaFeito = localStorage.getItem('agendado_' + pid);
+      if (jaFeito) {
+        const info = JSON.parse(jaFeito);
+        document.getElementById('slots-container').style.display = 'none';
+        document.querySelector('.section-title').textContent = '✅ Mentoria já agendada';
+        document.getElementById('detalhe-sucesso').innerHTML =
+          `<strong>Nome:</strong> ${info.nome}<br><strong>Data:</strong> ${diaSemanaFull(info.data)}, ${info.d}/${info.m}/${info.a}<br><strong>Horário:</strong> ${info.hora}<br><strong>WhatsApp:</strong> ${info.tel}`;
+        document.getElementById('sucesso').classList.add('visible');
+        return;
+      }
+    }
+
     const res = await fetch(`${DB}/slots.json`);
     todosSlots = (await res.json()) || {};
     renderSlots();
@@ -354,6 +372,10 @@
         body: JSON.stringify({disponivel:false, clienteNome:nome, clienteTel:tel, agendadoEm:Date.now()})
       });
       const [a,m,d] = slotSelecionado.data.split('-');
+      // Marca esse pagamento como já usado para impedir segundo agendamento
+      const pid = new URLSearchParams(window.location.search).get('payment_id') ||
+                  new URLSearchParams(window.location.search).get('collection_id');
+      if (pid) localStorage.setItem('agendado_' + pid, JSON.stringify({nome, tel, data: slotSelecionado.data, hora: slotSelecionado.hora, a, m, d}));
       document.getElementById('detalhe-sucesso').innerHTML =
         `<strong>Nome:</strong> ${nome}<br><strong>Data:</strong> ${diaSemanaFull(slotSelecionado.data)}, ${d}/${m}/${a}<br><strong>Horário:</strong> ${slotSelecionado.hora}<br><strong>WhatsApp:</strong> ${tel}`;
       document.getElementById('slots-container').style.display = 'none';
@@ -376,7 +398,40 @@
     return '';
   }
 
+  async function carregarProximaData() {
+    const el = document.getElementById('proxima-data');
+    if (!el) return;
+    try {
+      const res = await fetch(`${DB}/slots.json`);
+      const json = await res.json();
+      if (!json || typeof json !== 'object') {
+        el.innerHTML = `<span style="font-size:12px; color:var(--muted);">Nenhum horário disponível no momento.</span>`;
+        return;
+      }
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      const disponiveis = Object.values(json)
+        .filter(s => s && s.disponivel && s.data && new Date(s.data + 'T00:00:00') >= hoje)
+        .sort((a,b) => (a.data+a.hora).localeCompare(b.data+b.hora));
+      if (disponiveis.length === 0) {
+        el.innerHTML = `<span style="font-size:12px; color:var(--muted);">Nenhum horário disponível no momento.</span>`;
+        return;
+      }
+      const s = disponiveis[0];
+      const [a,m,d] = s.data.split('-');
+      const diasSemana = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+      const dia = diasSemana[new Date(s.data + 'T00:00:00').getDay()];
+      el.innerHTML = `
+        <div style="display:inline-flex; align-items:center; gap:10px; background:rgba(255,102,0,0.07); border:1px solid rgba(255,102,0,0.18); border-radius:10px; padding:9px 16px; font-size:13px; color:var(--text);">
+          <span style="font-size:16px;">📅</span>
+          <span>Próxima data disponível: a partir de <strong style="color:var(--orange);">${dia}, ${d}/${m}</strong> às <strong style="color:var(--orange);">${s.hora}</strong></span>
+        </div>`;
+    } catch(e) {
+      console.error('carregarProximaData:', e);
+    }
+  }
+
   init();
+  carregarProximaData();
 </script>
 </body>
 </html>
