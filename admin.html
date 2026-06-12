@@ -156,10 +156,20 @@
   .cal-day.has-slot:hover { background:var(--orange); }
   .cal-day.has-slot:hover .cal-day-num,
   .cal-day.has-slot:hover .cal-slot-hora { color:#fff; }
+  .cal-day.agendado { background:var(--green-dim); border-color:rgba(34,197,94,0.4); cursor:pointer; transition:all 0.2s; }
+  .cal-day.agendado:hover { background:var(--green); }
+  .cal-day.agendado:hover .cal-day-num,
+  .cal-day.agendado:hover .cal-slot-cliente,
+  .cal-day.agendado:hover .cal-slot-hora { color:#fff; }
   .cal-day-num { font-size:14px; font-weight:700; color:var(--text); }
   .cal-slot-hora { font-size:10px; font-weight:700; color:var(--orange); }
-  .cal-legend { display:flex; align-items:center; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
-  .cal-dot { width:10px; height:10px; border-radius:50%; background:var(--orange); flex-shrink:0; }
+  .cal-day.agendado .cal-slot-hora { color:var(--green); }
+  .cal-slot-cliente { font-size:9px; font-weight:700; color:var(--green); text-align:center; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 2px; }
+  .cal-legend { display:flex; align-items:center; gap:16px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); flex-wrap:wrap; }
+  .cal-legend-item { display:flex; align-items:center; gap:6px; }
+  .cal-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .cal-dot.orange { background:var(--orange); }
+  .cal-dot.green  { background:var(--green); }
 
   ::-webkit-scrollbar { width:6px; }
   ::-webkit-scrollbar-thumb { background:#2a2a2a; border-radius:3px; }
@@ -632,9 +642,8 @@
 
     const slotsMes = {};
     Object.entries(todosSlots).forEach(([id, s]) => {
-      if (!s.disponivel) return;
       const [sa, sm] = s.data.split('-').map(Number);
-      if (sa === ano && sm === mes) slotsMes[s.data] = {id, hora: s.hora};
+      if (sa === ano && sm === mes) slotsMes[s.data] = {id, hora: s.hora, disponivel: s.disponivel, nome: s.clienteNome};
     });
 
     const primeiroDia = new Date(ano, mes-1, 1).getDay();
@@ -647,17 +656,25 @@
       const ds = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const passado = new Date(ds+'T00:00:00') < hj;
       const slot = slotsMes[ds];
-      if (slot) {
-        cells += `<div class="cal-day has-slot${passado?' passado':''}" onclick="deletarSlot('${slot.id}')" title="Clique para remover">
+      if (slot && slot.disponivel) {
+        cells += `<div class="cal-day has-slot${passado?' passado':''}" onclick="abrirModalAgendar('${slot.id}','${ds}','${slot.hora}')" title="Clique para agendar">
           <span class="cal-day-num">${d}</span>
           <span class="cal-slot-hora">${slot.hora}</span>
+        </div>`;
+      } else if (slot && !slot.disponivel) {
+        const primeiroNome = (slot.nome || 'Cliente').split(' ')[0];
+        cells += `<div class="cal-day agendado${passado?' passado':''}" onclick="deletarSlot('${slot.id}')" title="${slot.nome || 'Cliente'} — clique para remover">
+          <span class="cal-day-num">${d}</span>
+          <span class="cal-slot-hora">${slot.hora}</span>
+          <span class="cal-slot-cliente">${primeiroNome}</span>
         </div>`;
       } else {
         cells += `<div class="cal-day${passado?' passado':''}"><span class="cal-day-num">${d}</span></div>`;
       }
     }
 
-    const total = Object.values(todosSlots).filter(s => s.disponivel).length;
+    const disponiveis = Object.values(todosSlots).filter(s => s.disponivel).length;
+    const agendados   = Object.values(todosSlots).filter(s => !s.disponivel).length;
     document.getElementById('lista').innerHTML = `
       <div class="cal-wrapper">
         <div class="cal-header">
@@ -667,8 +684,8 @@
         </div>
         <div class="cal-grid">${cells}</div>
         <div class="cal-legend">
-          <div class="cal-dot"></div>
-          Horário disponível (clique no dia para remover) · <strong style="color:var(--orange)">${total} no total</strong>
+          <div class="cal-legend-item"><div class="cal-dot orange"></div> Disponível — clique para agendar <strong style="color:var(--orange)">(${disponiveis})</strong></div>
+          <div class="cal-legend-item"><div class="cal-dot green"></div> Agendado — clique para remover <strong style="color:var(--green)">(${agendados})</strong></div>
         </div>
       </div>`;
   }
