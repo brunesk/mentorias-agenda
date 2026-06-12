@@ -165,6 +165,9 @@
   .cal-slot-hora { font-size:10px; font-weight:700; color:var(--orange); }
   .cal-day.agendado .cal-slot-hora { color:var(--green); }
   .cal-slot-cliente { font-size:9px; font-weight:700; color:var(--green); text-align:center; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 2px; }
+  .cal-day.livre { cursor:pointer; }
+  .cal-day.livre:hover { background:var(--surface); border-color:#444; }
+  .cal-day.livre:hover .cal-day-num { color:var(--orange); }
   .cal-legend { display:flex; align-items:center; gap:16px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); flex-wrap:wrap; }
   .cal-legend-item { display:flex; align-items:center; gap:6px; }
   .cal-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
@@ -228,6 +231,7 @@
             <select id="hora">
               <option value="">Selecione</option>
               <option value="18:00">18:00</option>
+              <option value="18:30">18:30</option>
               <option value="19:00">19:00</option>
               <option value="20:00">20:00</option>
               <option value="21:00">21:00</option>
@@ -263,6 +267,32 @@
     </div>
     <div id="lista"><div class="loading">Conectando...</div></div>
   </main>
+</div>
+
+<!-- MODAL LIBERAR HORÁRIO -->
+<div id="modal-liberar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
+  <div class="modal-box">
+    <div class="modal-title">Liberar horário</div>
+    <div class="modal-slot" id="liberar-data-info"></div>
+    <div class="field">
+      <label>Horário</label>
+      <select id="liberar-hora" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Inter',sans-serif;color:var(--text);outline:none;width:100%;">
+        <option value="">Selecione</option>
+        <option value="18:00">18:00</option>
+        <option value="18:30">18:30</option>
+        <option value="19:00">19:00</option>
+        <option value="20:00">20:00</option>
+        <option value="21:00">21:00</option>
+        <option value="09:00">09:00 (sáb)</option>
+        <option value="10:00">10:00 (sáb)</option>
+        <option value="11:00">11:00 (sáb)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-orange" onclick="confirmarLiberar()">+ Liberar horário</button>
+      <button class="btn btn-ghost" onclick="fecharModalLiberar()">Cancelar</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL AGENDAR MANUALMENTE -->
@@ -423,6 +453,43 @@
     await fetch(`${DB}/slots/${id}.json`, { method: 'DELETE' });
     carregarSlots();
   }
+
+  // ─── LIBERAR PELO CALENDÁRIO ──────────────────────────────────────
+  let dataParaLiberar = null;
+
+  function abrirModalLiberar(data) {
+    dataParaLiberar = data;
+    document.getElementById('liberar-data-info').textContent = `📅 ${diaSemanaFull(data)}, ${fmt(data)}`;
+    document.getElementById('liberar-hora').value = '';
+    document.getElementById('modal-liberar').style.display = 'flex';
+    setTimeout(() => document.getElementById('liberar-hora').focus(), 100);
+  }
+
+  function fecharModalLiberar() {
+    document.getElementById('modal-liberar').style.display = 'none';
+    dataParaLiberar = null;
+  }
+
+  async function confirmarLiberar() {
+    const hora = document.getElementById('liberar-hora').value;
+    if (!hora) { alert('Selecione um horário!'); return; }
+    const d = new Date(dataParaLiberar + 'T00:00:00');
+    const dia = d.getDay();
+    if (dia === 3) { alert('Bruno não dá mentoria às quartas!'); return; }
+    const h = parseInt(hora.split(':')[0]);
+    if (dia === 6) { if (h >= 13) { alert('Sábado só de manhã!'); return; } }
+    else { if (h < 18) { alert('Apenas após 18h!'); return; } }
+    await fetch(`${DB}/slots.json`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: dataParaLiberar, hora, disponivel: true, clienteNome: null, clienteTel: null, criadoEm: Date.now() })
+    });
+    fecharModalLiberar();
+    carregarSlots();
+  }
+
+  document.getElementById('modal-liberar').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalLiberar();
+  });
 
   // ─── AGENDAR MANUALMENTE ───────────────────────────────────────────
   function abrirModalAgendar(id, data, hora) {
@@ -669,7 +736,13 @@
           <span class="cal-slot-cliente">${primeiroNome}</span>
         </div>`;
       } else {
-        cells += `<div class="cal-day${passado?' passado':''}"><span class="cal-day-num">${d}</span></div>`;
+        if (!passado) {
+          cells += `<div class="cal-day livre" onclick="abrirModalLiberar('${ds}')" title="Clique para liberar este dia">
+            <span class="cal-day-num">${d}</span>
+          </div>`;
+        } else {
+          cells += `<div class="cal-day passado"><span class="cal-day-num">${d}</span></div>`;
+        }
       }
     }
 
@@ -684,6 +757,7 @@
         </div>
         <div class="cal-grid">${cells}</div>
         <div class="cal-legend">
+          <div class="cal-legend-item"><div class="cal-dot" style="background:#444;border:1px solid #555;"></div> Livre — clique para liberar</div>
           <div class="cal-legend-item"><div class="cal-dot orange"></div> Disponível — clique para agendar <strong style="color:var(--orange)">(${disponiveis})</strong></div>
           <div class="cal-legend-item"><div class="cal-dot green"></div> Agendado — clique para remover <strong style="color:var(--green)">(${agendados})</strong></div>
         </div>
