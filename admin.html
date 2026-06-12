@@ -141,6 +141,26 @@
   .empty p { font-size:15px; line-height:1.6; }
   .loading { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
 
+  /* CALENDÁRIO */
+  .cal-wrapper { max-width:580px; }
+  .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .cal-titulo { font-size:18px; font-weight:800; text-transform:capitalize; }
+  .cal-nav { background:var(--surface2); border:1px solid var(--border); border-radius:8px; width:36px; height:36px; cursor:pointer; font-size:20px; color:var(--text); display:flex; align-items:center; justify-content:center; transition:background 0.2s; line-height:1; }
+  .cal-nav:hover { background:var(--orange-dim); color:var(--orange); }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .cal-dow { text-align:center; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; padding:8px 0; }
+  .cal-day { aspect-ratio:1; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; background:var(--surface2); border:1px solid var(--border); }
+  .cal-day.empty { background:transparent; border-color:transparent; }
+  .cal-day.passado { opacity:0.3; }
+  .cal-day.has-slot { background:var(--orange-dim); border-color:rgba(255,102,0,0.4); cursor:pointer; transition:all 0.2s; }
+  .cal-day.has-slot:hover { background:var(--orange); }
+  .cal-day.has-slot:hover .cal-day-num,
+  .cal-day.has-slot:hover .cal-slot-hora { color:#fff; }
+  .cal-day-num { font-size:14px; font-weight:700; color:var(--text); }
+  .cal-slot-hora { font-size:10px; font-weight:700; color:var(--orange); }
+  .cal-legend { display:flex; align-items:center; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+  .cal-dot { width:10px; height:10px; border-radius:50%; background:var(--orange); flex-shrink:0; }
+
   ::-webkit-scrollbar { width:6px; }
   ::-webkit-scrollbar-thumb { background:#2a2a2a; border-radius:3px; }
   input[type="date"]::-webkit-calendar-picker-indicator,
@@ -265,7 +285,8 @@
   let slotParaAgendar = null;
 
   const hoje = new Date();
-  let mesDashboard = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  let mesDashboard   = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  let mesCalendario  = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
 
   document.getElementById('link-cliente').textContent = URL_BASE + '/agendar.html';
 
@@ -570,18 +591,22 @@
 
   function render() {
     renderStats();
-    if (tabAtual === 'dashboard') { renderDashboard(); return; }
+    if (tabAtual === 'dashboard')   { renderDashboard();   return; }
+    if (tabAtual === 'disponiveis') { renderCalendario();  return; }
 
     let slots = Object.entries(todosSlots).map(([id,s]) => ({id,...s})).sort((a,b) => (a.data+a.hora).localeCompare(b.data+b.hora));
-    if (tabAtual === 'disponiveis') slots = slots.filter(s => s.disponivel);
-    if (tabAtual === 'agendadas')   slots = slots.filter(s => !s.disponivel);
+    if (tabAtual === 'agendadas') slots = slots.filter(s => !s.disponivel);
 
     const lista = document.getElementById('lista');
     if (slots.length === 0) {
-      lista.innerHTML = `<div class="empty"><div class="icon">📭</div><p>${tabAtual === 'disponiveis' ? 'Nenhum horário disponível.' : 'Nenhuma mentoria agendada.'}</p></div>`;
+      lista.innerHTML = `<div class="empty"><div class="icon">📭</div><p>Nenhuma mentoria agendada.</p></div>`;
       return;
     }
-    lista.innerHTML = `<div class="cards-grid">${slots.map(s => `
+    lista.innerHTML = `<div class="cards-grid">${slots.map(s => {
+      const waNum = s.clienteTel ? s.clienteTel.replace(/\D/g,'') : '';
+      const waMsg = encodeURIComponent('Olá, tudo bem? Está tudo certo para nossa mentoria hoje?');
+      const waLink = waNum ? `https://wa.me/55${waNum}?text=${waMsg}` : '';
+      return `
       <div class="card ${s.disponivel ? 'disponivel' : 'agendada'}">
         <div class="card-left">
           <div class="card-status ${s.disponivel ? 'orange' : 'green'}">${s.disponivel ? 'Disponível' : 'Agendada'}</div>
@@ -589,14 +614,76 @@
           <div class="card-meta">
             <div class="chip orange">📅 ${diaSemana(s.data)}, ${fmt(s.data)}</div>
             <div class="chip orange">🕐 ${s.hora}</div>
-            ${!s.disponivel && s.clienteTel ? `<div class="chip green">📱 ${s.clienteTel}</div>` : ''}
+            ${!s.disponivel && waLink ? `<a href="${waLink}" target="_blank" class="chip green" style="text-decoration:none;">💬 ${s.clienteTel}</a>` : ''}
           </div>
         </div>
         <div class="card-actions">
           ${s.disponivel ? `<button class="btn-action agendar" onclick="abrirModalAgendar('${s.id}','${s.data}','${s.hora}')">+ Agendar</button>` : ''}
           <button class="btn-action del" onclick="deletarSlot('${s.id}')">Remover</button>
         </div>
-      </div>`).join('')}</div>`;
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function renderCalendario() {
+    const [ano, mes] = mesCalendario.split('-').map(Number);
+    const nomeMes = new Date(ano, mes-1, 1).toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
+    const hj = new Date(); hj.setHours(0,0,0,0);
+
+    const slotsMes = {};
+    Object.entries(todosSlots).forEach(([id, s]) => {
+      if (!s.disponivel) return;
+      const [sa, sm] = s.data.split('-').map(Number);
+      if (sa === ano && sm === mes) slotsMes[s.data] = {id, hora: s.hora};
+    });
+
+    const primeiroDia = new Date(ano, mes-1, 1).getDay();
+    const diasNoMes   = new Date(ano, mes, 0).getDate();
+
+    let cells = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+    for (let i = 0; i < primeiroDia; i++) cells += `<div class="cal-day empty"></div>`;
+
+    for (let d = 1; d <= diasNoMes; d++) {
+      const ds = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const passado = new Date(ds+'T00:00:00') < hj;
+      const slot = slotsMes[ds];
+      if (slot) {
+        cells += `<div class="cal-day has-slot${passado?' passado':''}" onclick="deletarSlot('${slot.id}')" title="Clique para remover">
+          <span class="cal-day-num">${d}</span>
+          <span class="cal-slot-hora">${slot.hora}</span>
+        </div>`;
+      } else {
+        cells += `<div class="cal-day${passado?' passado':''}"><span class="cal-day-num">${d}</span></div>`;
+      }
+    }
+
+    const total = Object.values(todosSlots).filter(s => s.disponivel).length;
+    document.getElementById('lista').innerHTML = `
+      <div class="cal-wrapper">
+        <div class="cal-header">
+          <button class="cal-nav" onclick="prevMesCalendario()">‹</button>
+          <span class="cal-titulo">${nomeMes.charAt(0).toUpperCase()+nomeMes.slice(1)}</span>
+          <button class="cal-nav" onclick="nextMesCalendario()">›</button>
+        </div>
+        <div class="cal-grid">${cells}</div>
+        <div class="cal-legend">
+          <div class="cal-dot"></div>
+          Horário disponível (clique no dia para remover) · <strong style="color:var(--orange)">${total} no total</strong>
+        </div>
+      </div>`;
+  }
+
+  function prevMesCalendario() {
+    const [a, m] = mesCalendario.split('-').map(Number);
+    const d = new Date(a, m-2, 1);
+    mesCalendario = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    renderCalendario();
+  }
+  function nextMesCalendario() {
+    const [a, m] = mesCalendario.split('-').map(Number);
+    const d = new Date(a, m, 1);
+    mesCalendario = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    renderCalendario();
   }
 
   const d = new Date();
