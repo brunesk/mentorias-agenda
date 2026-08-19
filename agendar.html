@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agendar Mentoria — Bruno Ferracini</title>
-<!-- v2 -->
+<!-- v3: escolhe horario antes de pagar; confirmacao via webhook no servidor -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -12,6 +12,7 @@
     --bg: #0f0f0f; --surface: #181818; --surface2: #222;
     --border: #2a2a2a; --text: #f0f0f0; --muted: #666;
     --green: #22c55e; --green-dim: rgba(34,197,94,0.1);
+    --red: #ef4444; --red-dim: rgba(239,68,68,0.1);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
@@ -24,9 +25,7 @@
   .header h1 { font-size:26px; font-weight:800; margin-bottom:8px; }
   .header p { font-size:14px; color:var(--muted); line-height:1.6; }
 
-  /* TELA PAGAMENTO */
-  #tela-pagamento { display:block; }
-  .beneficios { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:20px; }
+  .beneficios { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:24px; }
   .beneficio { display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid var(--border); }
   .beneficio:last-child { border-bottom:none; padding-bottom:0; }
   .beneficio:first-child { padding-top:0; }
@@ -34,28 +33,12 @@
   .ben-text { font-size:14px; color:var(--text); line-height:1.4; }
   .ben-text strong { color:var(--orange); }
 
-  .pagamento-title { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:12px; }
-  .metodos { display:flex; flex-direction:column; gap:12px; margin-bottom:14px; }
-  .metodo { display:flex; align-items:center; gap:16px; background:var(--surface); border:2px solid var(--border); border-radius:16px; padding:18px 20px; text-decoration:none; color:var(--text); transition:all 0.2s; cursor:pointer; }
-  .metodo:hover { border-color:var(--orange); background:#1c1c1c; }
-  .metodo.pix { border-color:rgba(34,197,94,0.3); }
-  .metodo.pix:hover { border-color:var(--green); }
-  .metodo-emoji { font-size:28px; flex-shrink:0; }
-  .metodo-info { flex:1; }
-  .metodo-nome { font-size:15px; font-weight:800; margin-bottom:2px; }
-  .metodo-desc { font-size:12px; color:var(--muted); }
-  .metodo-preco { text-align:right; flex-shrink:0; }
-  .metodo-valor { font-size:20px; font-weight:900; color:var(--orange); line-height:1; }
-  .metodo.pix .metodo-valor { color:var(--green); }
-  .metodo-taxa { font-size:10px; color:var(--muted); margin-top:2px; }
-  .metodo-seta { font-size:18px; color:var(--muted); flex-shrink:0; }
-  .seguro { text-align:center; font-size:12px; color:var(--muted); }
-
-  /* TELA PENDENTE */
-  #tela-pendente { display:none; text-align:center; padding:40px 20px; background:var(--surface); border:1px solid var(--border); border-radius:20px; }
-  #tela-pendente .icon { font-size:52px; margin-bottom:16px; }
-  #tela-pendente h2 { font-size:20px; font-weight:800; margin-bottom:10px; }
-  #tela-pendente p { font-size:14px; color:var(--muted); line-height:1.7; }
+  /* TELA PENDENTE / ERRO */
+  #tela-pendente, #tela-erro { display:none; text-align:center; padding:40px 20px; background:var(--surface); border:1px solid var(--border); border-radius:20px; }
+  #tela-pendente .icon, #tela-erro .icon { font-size:52px; margin-bottom:16px; }
+  #tela-pendente h2, #tela-erro h2 { font-size:20px; font-weight:800; margin-bottom:10px; }
+  #tela-pendente p, #tela-erro p { font-size:14px; color:var(--muted); line-height:1.7; }
+  .btn-voltar { display:inline-block; margin-top:20px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:12px 22px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; text-decoration:none; }
 
   /* TELA AGENDAMENTO */
   #tela-agendamento { display:none; }
@@ -83,9 +66,13 @@
   .field input::placeholder { color:#444; }
   .resumo { background:var(--orange-dim); border:1px solid rgba(255,102,0,0.2); border-radius:10px; padding:14px; margin-bottom:16px; font-size:13px; line-height:1.7; }
   .resumo strong { color:var(--orange); }
+  .preco-linha { display:flex; justify-content:space-between; align-items:center; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .preco-linha .lbl { font-size:13px; color:var(--muted); }
+  .preco-linha .val { font-size:22px; font-weight:900; color:var(--orange); }
   .btn-confirmar { background:var(--orange); color:#fff; border:none; border-radius:10px; padding:15px; font-size:15px; font-weight:700; cursor:pointer; width:100%; transition:opacity 0.2s; }
   .btn-confirmar:hover { opacity:0.88; }
   .btn-confirmar:disabled { opacity:0.4; cursor:not-allowed; }
+  .seguro { text-align:center; font-size:12px; color:var(--muted); margin-top:14px; }
 
   .sucesso { display:none; text-align:center; padding:40px 20px; background:var(--surface); border:1px solid var(--border); border-radius:20px; }
   .sucesso.visible { display:block; }
@@ -109,81 +96,34 @@
     <div class="header-tag">Acelera Shopee</div>
     <h1>Mentoria com Bruno</h1>
     <p>Aprenda a vender mais na Shopee com quem já fez.</p>
-    <p style="margin-top:10px; font-size:13px; color:#FF6600; font-weight:600;">Conclua o pagamento para acessar as datas disponíveis e fazer seu agendamento.</p>
     <div id="proxima-data" style="margin-top:12px; min-height:28px;"></div>
   </div>
 
-  <!-- TELA 1: PAGAMENTO -->
-  <div id="tela-pagamento">
-    <div class="beneficios">
-      <div class="beneficio">
-        <div class="ben-icon">🎯</div>
-        <div class="ben-text"><strong>1 a 3 horas exclusivas</strong> com o Bruno focadas no seu negócio na Shopee</div>
-      </div>
-      <div class="beneficio">
-        <div class="ben-icon">📊</div>
-        <div class="ben-text"><strong>Análise completa</strong> da sua loja, anúncios e estratégia de ADS</div>
-      </div>
-      <div class="beneficio">
-        <div class="ben-icon">🗺️</div>
-        <div class="ben-text"><strong>Plano de ação</strong> personalizado para você sair da mentoria com o próximo passo</div>
-      </div>
-      <div class="beneficio">
-        <div class="ben-icon">💬</div>
-        <div class="ben-text"><strong>Suporte vitalício</strong> via WhatsApp após a mentoria</div>
-      </div>
+  <div class="beneficios">
+    <div class="beneficio">
+      <div class="ben-icon">🎯</div>
+      <div class="ben-text"><strong>1 a 3 horas exclusivas</strong> com o Bruno focadas no seu negócio na Shopee</div>
     </div>
-
-    <div class="pagamento-title">Escolha como pagar</div>
-    <div class="metodos">
-      <a id="btn-pix" href="#" class="metodo pix" target="_blank">
-        <div class="metodo-emoji">🟢</div>
-        <div class="metodo-info">
-          <div class="metodo-nome">Pix</div>
-          <div class="metodo-desc">Aprovação na hora</div>
-        </div>
-        <div class="metodo-preco">
-          <div class="metodo-valor">R$ <span id="preco-pix">300</span></div>
-          <div class="metodo-taxa">sem taxa</div>
-        </div>
-        <div class="metodo-seta">→</div>
-      </a>
-      <a id="btn-card" href="#" class="metodo" target="_blank">
-        <div class="metodo-emoji">💳</div>
-        <div class="metodo-info">
-          <div class="metodo-nome">Cartão de crédito</div>
-          <div class="metodo-desc">Taxa de serviço incluída</div>
-        </div>
-        <div class="metodo-preco">
-          <div class="metodo-valor">R$ <span id="preco-card">—</span></div>
-          <div class="metodo-taxa" id="taxa-display"></div>
-        </div>
-        <div class="metodo-seta">→</div>
-      </a>
+    <div class="beneficio">
+      <div class="ben-icon">📊</div>
+      <div class="ben-text"><strong>Análise completa</strong> da sua loja, anúncios e estratégia de ADS</div>
     </div>
-    <div class="seguro">🔒 Pagamento seguro via Mercado Pago</div>
+    <div class="beneficio">
+      <div class="ben-icon">🗺️</div>
+      <div class="ben-text"><strong>Plano de ação</strong> personalizado para você sair da mentoria com o próximo passo</div>
+    </div>
+    <div class="beneficio">
+      <div class="ben-icon">💬</div>
+      <div class="ben-text"><strong>Suporte vitalício</strong> via WhatsApp após a mentoria</div>
+    </div>
   </div>
 
-  <!-- TELA 2: PENDENTE -->
-  <div id="tela-pendente">
-    <div class="icon">⏳</div>
-    <h2>Aguardando confirmação do Pix</h2>
-    <p>Pague o Pix no seu banco e aguarde.<br>A página vai abrir o calendário <strong style="color:var(--orange)">automaticamente</strong> assim que o pagamento for confirmado.</p>
-    <div style="margin:24px 0; padding:16px; background:var(--surface2); border-radius:12px; border:1px solid var(--border);">
-      <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Verificando pagamento...</div>
-      <div style="height:4px; background:var(--border); border-radius:2px; overflow:hidden;">
-        <div id="barra-progresso" style="height:100%; width:0%; background:var(--orange); border-radius:2px; transition:width 5s linear;"></div>
-      </div>
-    </div>
-    <p style="font-size:13px; color:var(--muted);">Em caso de dúvidas, chame o Bruno no WhatsApp:<br><a id="link-whatsapp" href="#" style="color:var(--orange); font-weight:700; text-decoration:none;">Clique aqui para abrir o WhatsApp</a></p>
-  </div>
-
-  <!-- TELA 3: AGENDAMENTO -->
-  <div id="tela-agendamento">
-    <div class="section-title">✅ Pagamento confirmado — Escolha seu horário</div>
+  <!-- TELA AGENDAMENTO (padrão) -->
+  <div id="tela-agendamento" style="display:block;">
+    <div class="section-title">📅 Escolha seu horário</div>
     <div id="slots-container"><div class="loading">Carregando horários...</div></div>
     <div class="form-card" id="form-card">
-      <h3>Confirmar agendamento</h3>
+      <h3>Confirmar horário e pagar</h3>
       <div class="resumo" id="resumo"></div>
       <div class="field">
         <label>Seu nome completo</label>
@@ -193,7 +133,12 @@
         <label>WhatsApp</label>
         <input type="tel" id="tel" placeholder="Ex: (11) 99999-9999" />
       </div>
-      <button class="btn-confirmar" onclick="confirmar()">Confirmar agendamento</button>
+      <div class="preco-linha">
+        <span class="lbl">Valor da mentoria</span>
+        <span class="val" id="preco-display">—</span>
+      </div>
+      <button class="btn-confirmar" onclick="confirmar()" id="btn-confirmar">Ir para o pagamento</button>
+      <div class="seguro">🔒 Pagamento seguro via Mercado Pago · o horário só é seu depois do pagamento aprovado</div>
     </div>
     <div class="sucesso" id="sucesso">
       <div class="icon">✅</div>
@@ -203,46 +148,51 @@
     </div>
   </div>
 
+  <!-- TELA PENDENTE (voltando do Mercado Pago, aguardando confirmação) -->
+  <div id="tela-pendente">
+    <div class="icon">⏳</div>
+    <h2>Confirmando seu pagamento...</h2>
+    <p>Isso leva só alguns segundos.<br>Não feche essa página.</p>
+    <div style="margin:24px 0; padding:16px; background:var(--surface2); border-radius:12px; border:1px solid var(--border);">
+      <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Verificando com o Mercado Pago...</div>
+      <div style="height:4px; background:var(--border); border-radius:2px; overflow:hidden;">
+        <div id="barra-progresso" style="height:100%; width:0%; background:var(--orange); border-radius:2px; transition:width 3s linear;"></div>
+      </div>
+    </div>
+    <p style="font-size:13px; color:var(--muted);">Demorando muito? Chame o Bruno no WhatsApp:<br><a id="link-whatsapp" href="#" style="color:var(--orange); font-weight:700; text-decoration:none;">Clique aqui para abrir o WhatsApp</a></p>
+  </div>
+
+  <!-- TELA ERRO (pagamento nao aprovado / cancelado) -->
+  <div id="tela-erro">
+    <div class="icon">😕</div>
+    <h2>Pagamento não confirmado</h2>
+    <p>Não conseguimos confirmar seu pagamento. Se o valor foi descontado, ele será estornado automaticamente pelo Mercado Pago.</p>
+    <a class="btn-voltar" href="agendar.html">Escolher horário de novo</a>
+  </div>
+
 </div>
 
 <script>
   const DB = 'https://mentorias-bruno-default-rtdb.firebaseio.com';
-  let slotSelecionado = null;
-  let todosSlots = {};
+  const API_URL = 'https://mentorias-agenda.vercel.app';
 
+  let slotSelecionado = null;
+  let precoAtual = 0;
   let pollingInterval = null;
+  let pollingTentativas = 0;
 
   async function init() {
     const params = new URLSearchParams(window.location.search);
-    const status           = params.get('status');
-    const collectionStatus = params.get('collection_status');
-    const paymentId        = params.get('payment_id') || params.get('collection_id');
-    const statusFinal      = status || collectionStatus || '';
+    const aguardandoSlot = params.get('slot');
+    const aguardando = params.get('aguardando') === '1' && aguardandoSlot;
+    const erro = params.get('erro') === '1';
 
-    // Carrega config
-    let mpToken = '';
     try {
       const resConfig = await fetch(`${DB}/config.json`);
       const config = (await resConfig.json()) || {};
-
-      // Pix
-      const pixUrl = config.pixUrl || config.checkoutUrl || '#';
-      const pixPreco = config.pixPreco || config.preco || '300';
-      document.getElementById('btn-pix').href = pixUrl;
-      document.getElementById('preco-pix').textContent = parseFloat(pixPreco).toLocaleString('pt-BR', {minimumFractionDigits:2});
-
-      // Cartão
-      const cardUrl = config.cardUrl || config.checkoutUrl || '#';
-      const cardPreco = config.cardPreco || config.preco || '—';
-      document.getElementById('btn-card').href = cardUrl;
-      if (config.cardPreco) {
-        document.getElementById('preco-card').textContent = parseFloat(cardPreco).toLocaleString('pt-BR', {minimumFractionDigits:2});
-        if (config.taxa) document.getElementById('taxa-display').textContent = `+${config.taxa}% taxa MP`;
-      } else if (config.preco) {
-        document.getElementById('preco-card').textContent = parseFloat(config.preco).toLocaleString('pt-BR', {minimumFractionDigits:2});
-      }
-
-      if (config.mpToken) mpToken = config.mpToken;
+      precoAtual = parseFloat(config.preco) || 0;
+      document.getElementById('preco-display').textContent = precoAtual
+        ? 'R$ ' + precoAtual.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
       if (config.whatsapp) {
         const num = config.whatsapp.replace(/\D/g,'');
         document.getElementById('link-whatsapp').href = `https://wa.me/55${num}`;
@@ -250,45 +200,64 @@
       }
     } catch(e) {}
 
-    const aprovado = statusFinal === 'approved' || collectionStatus === 'approved';
-    const pendente = statusFinal === 'pending' || statusFinal === 'in_process' || collectionStatus === 'pending';
-    const isPix = params.get('payment_type') === 'bank_transfer';
-
-    if (paymentId && aprovado) {
-      // Pagamento aprovado — abre calendário
-      mostrarAgendamento();
-    } else if (paymentId && pendente && isPix) {
-      // Pix gerado mas ainda não pago — aguarda polling real antes de abrir
-      document.getElementById('tela-pagamento').style.display = 'none';
-      document.getElementById('tela-pendente').style.display = 'block';
-      animarBarra();
-      if (mpToken) iniciarPolling(paymentId, mpToken);
-    } else if (paymentId && pendente) {
-      // Outro método pendente
-      document.getElementById('tela-pagamento').style.display = 'none';
-      document.getElementById('tela-pendente').style.display = 'block';
-    } else {
-      // Sem pagamento, cancelado, rejeitado ou status desconhecido — volta à tela de pagamento
-      document.getElementById('tela-pagamento').style.display = 'block';
+    if (erro) {
+      document.getElementById('tela-agendamento').style.display = 'none';
+      document.getElementById('tela-erro').style.display = 'block';
+      return;
     }
+
+    if (aguardando) {
+      document.getElementById('tela-agendamento').style.display = 'none';
+      document.getElementById('tela-pendente').style.display = 'block';
+      aguardarConfirmacao(aguardandoSlot);
+      return;
+    }
+
+    carregarSlots();
   }
 
-  function iniciarPolling(paymentId, token) {
+  // Fica de olho no proprio Firebase (leitura publica, sem token nenhum)
+  // esperando o webhook do servidor confirmar o pagamento. Nao fala direto
+  // com o Mercado Pago em nenhum momento.
+  function aguardarConfirmacao(slotId) {
     animarBarra();
+    pollingTentativas = 0;
     pollingInterval = setInterval(async () => {
+      pollingTentativas++;
       try {
-        const res = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        if (data.status === 'approved') {
+        const res = await fetch(`${DB}/slots/${slotId}.json?t=${Date.now()}`);
+        const slot = await res.json();
+        if (slot && slot.disponivel === false && slot.pendente === false && slot.mpPaymentId) {
           clearInterval(pollingInterval);
-          mostrarAgendamento();
-        } else {
-          animarBarra();
+          mostrarSucesso(slot);
+          return;
         }
+        if (slot && slot.disponivel === true) {
+          // hold foi liberado (pagamento recusado/cancelado/expirou)
+          clearInterval(pollingInterval);
+          document.getElementById('tela-pendente').style.display = 'none';
+          document.getElementById('tela-erro').style.display = 'block';
+          return;
+        }
+        // ainda pendente — depois de ~2 minutos, avisa que pode demorar mais
+        if (pollingTentativas === 40) {
+          document.querySelector('#tela-pendente h2').textContent = 'Ainda confirmando...';
+          document.querySelector('#tela-pendente p').innerHTML = 'Às vezes o Mercado Pago demora um pouco mais.<br>Pode aguardar ou chamar o Bruno no WhatsApp.';
+        }
+        animarBarra();
       } catch(e) {}
-    }, 5000);
+    }, 3000);
+  }
+
+  function mostrarSucesso(slot) {
+    document.getElementById('tela-pendente').style.display = 'none';
+    document.getElementById('tela-agendamento').style.display = 'block';
+    document.getElementById('slots-container').style.display = 'none';
+    document.querySelector('#tela-agendamento .section-title').style.display = 'none';
+    const [a,m,d] = slot.data.split('-');
+    document.getElementById('detalhe-sucesso').innerHTML =
+      `<strong>Nome:</strong> ${slot.clienteNome}<br><strong>Data:</strong> ${diaSemanaFull(slot.data)}, ${d}/${m}/${a}<br><strong>Horário:</strong> ${slot.hora}`;
+    document.getElementById('sucesso').classList.add('visible');
   }
 
   function animarBarra() {
@@ -297,39 +266,32 @@
     barra.style.transition = 'none';
     barra.style.width = '0%';
     setTimeout(() => {
-      barra.style.transition = 'width 5s linear';
+      barra.style.transition = 'width 3s linear';
       barra.style.width = '100%';
     }, 50);
   }
 
-  async function mostrarAgendamento() {
-    document.getElementById('tela-pagamento').style.display = 'none';
-    document.getElementById('tela-agendamento').style.display = 'block';
+  async function carregarSlots() {
+    const res = await fetch(`${DB}/slots.json`);
+    const todosSlots = (await res.json()) || {};
 
-    // Bloqueia segundo agendamento com o mesmo pagamento
-    const params = new URLSearchParams(window.location.search);
-    const pid = params.get('payment_id') || params.get('collection_id');
-    if (pid) {
-      const jaFeito = localStorage.getItem('agendado_' + pid);
-      if (jaFeito) {
-        const info = JSON.parse(jaFeito);
-        document.getElementById('slots-container').style.display = 'none';
-        document.querySelector('.section-title').textContent = '✅ Mentoria já agendada';
-        document.getElementById('detalhe-sucesso').innerHTML =
-          `<strong>Nome:</strong> ${info.nome}<br><strong>Data:</strong> ${diaSemanaFull(info.data)}, ${info.d}/${info.m}/${info.a}<br><strong>Horário:</strong> ${info.hora}<br><strong>WhatsApp:</strong> ${info.tel}`;
-        document.getElementById('sucesso').classList.add('visible');
-        return;
+    // Autocura: hold de pagamento que expirou sem confirmar volta a ficar
+    // disponivel pra quem esta olhando a pagina agora.
+    const agora = Date.now();
+    for (const [id, s] of Object.entries(todosSlots)) {
+      if (s.pendente && s.holdExpira && s.holdExpira < agora) {
+        fetch(`${DB}/slots/${id}.json`, { method:'PATCH', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ disponivel:true, pendente:false, clienteNome:null, clienteTel:null, holdExpira:null }) });
+        s.disponivel = true; s.pendente = false;
       }
     }
 
-    const res = await fetch(`${DB}/slots.json`);
-    todosSlots = (await res.json()) || {};
-    renderSlots();
+    renderSlots(todosSlots);
   }
 
-  function renderSlots() {
+  function renderSlots(todosSlots) {
     const disponiveis = Object.entries(todosSlots)
-      .filter(([_,s]) => s.disponivel)
+      .filter(([_,s]) => s.disponivel === true)
       .map(([id,s]) => ({id,...s}))
       .sort((a,b) => (a.data+a.hora).localeCompare(b.data+b.hora));
 
@@ -364,27 +326,20 @@
     const tel  = document.getElementById('tel').value.trim();
     if (!nome || !tel) { alert('Preencha seu nome e WhatsApp!'); return; }
     if (!slotSelecionado) { alert('Selecione um horário!'); return; }
-    const btn = document.querySelector('.btn-confirmar');
-    btn.disabled = true; btn.textContent = 'Confirmando...';
+    const btn = document.getElementById('btn-confirmar');
+    btn.disabled = true; btn.textContent = 'Preparando pagamento...';
     try {
-      await fetch(`${DB}/slots/${slotSelecionado.id}.json`, {
-        method: 'PATCH', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({disponivel:false, clienteNome:nome, clienteTel:tel, agendadoEm:Date.now()})
+      const r = await fetch(`${API_URL}/api/reservar`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ slotId: slotSelecionado.id, nome, tel })
       });
-      const [a,m,d] = slotSelecionado.data.split('-');
-      // Marca esse pagamento como já usado para impedir segundo agendamento
-      const pid = new URLSearchParams(window.location.search).get('payment_id') ||
-                  new URLSearchParams(window.location.search).get('collection_id');
-      if (pid) localStorage.setItem('agendado_' + pid, JSON.stringify({nome, tel, data: slotSelecionado.data, hora: slotSelecionado.hora, a, m, d}));
-      document.getElementById('detalhe-sucesso').innerHTML =
-        `<strong>Nome:</strong> ${nome}<br><strong>Data:</strong> ${diaSemanaFull(slotSelecionado.data)}, ${d}/${m}/${a}<br><strong>Horário:</strong> ${slotSelecionado.hora}<br><strong>WhatsApp:</strong> ${tel}`;
-      document.getElementById('slots-container').style.display = 'none';
-      document.querySelector('.section-title').style.display = 'none';
-      document.getElementById('form-card').style.display = 'none';
-      document.getElementById('sucesso').classList.add('visible');
+      const data = await r.json();
+      if (!r.ok || !data.url) throw new Error(data.error || 'Erro ao gerar pagamento');
+      window.location.href = data.url;
     } catch(e) {
-      alert('Erro ao confirmar. Tente novamente.');
-      btn.disabled = false; btn.textContent = 'Confirmar agendamento';
+      alert(e.message || 'Erro ao preparar pagamento. Tente novamente.');
+      btn.disabled = false; btn.textContent = 'Ir para o pagamento';
+      carregarSlots(); // o horario escolhido pode ter sido pego por outra pessoa nesse meio tempo
     }
   }
 
