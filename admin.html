@@ -205,15 +205,9 @@
           <input type="number" id="taxa" placeholder="4.98" min="0" step="0.01" oninput="calcularPrecoCard()" />
         </div>
       </div>
-      <div class="hint" style="margin-bottom:10px;">Cartão = Pix ÷ (1 − taxa) · <strong id="preview-card">—</strong></div>
-      <button class="btn btn-green" onclick="gerarLinkPagamento()" id="btn-gerar">⚡ Gerar links de pagamento</button>
+      <div class="hint" style="margin-bottom:10px;">Cartão = Pix ÷ (1 − taxa) · <strong id="preview-card">—</strong> · a aluna escolhe o horário antes de pagar, o pagamento é gerado na hora pelo servidor</div>
+      <button class="btn btn-green" onclick="salvarPreco()" id="btn-gerar">💾 Salvar preço</button>
       <div class="aviso" id="aviso-pagamento" style="margin-top:8px;"></div>
-
-      <div class="pagamento-status" id="status-pagamento" style="margin-top:12px; display:none;">
-        <div class="ps-row"><span class="ps-label">Pix</span><span class="ps-value green" id="ps-pix">—</span></div>
-        <div class="ps-row"><span class="ps-label">Cartão</span><span class="ps-value orange" id="ps-card">—</span></div>
-        <div class="ps-row"><span class="ps-label">Status</span><span class="ps-value green" id="ps-status">—</span></div>
-      </div>
     </div>
 
     <!-- NOVO HORÁRIO -->
@@ -318,7 +312,6 @@
 <script>
   const DB = 'https://mentorias-bruno-default-rtdb.firebaseio.com';
   const URL_BASE = 'https://brunesk.github.io/mentorias-agenda';
-  const MP_TOKEN = localStorage.getItem('mp_token') || '';
   let tabAtual = 'disponiveis';
   let todosSlots = {};
   let configAtual = {};
@@ -353,64 +346,30 @@
       document.getElementById('preco').value = configAtual.preco;
       if (configAtual.taxa) document.getElementById('taxa').value = configAtual.taxa;
       calcularPrecoCard();
-      document.getElementById('ps-pix').textContent  = 'R$ ' + parseFloat(configAtual.pixPreco || configAtual.preco).toLocaleString('pt-BR', {minimumFractionDigits:2});
-      document.getElementById('ps-card').textContent = configAtual.cardPreco ? 'R$ ' + parseFloat(configAtual.cardPreco).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
-      document.getElementById('ps-status').textContent = (configAtual.pixUrl || configAtual.checkoutUrl) ? '✓ Links ativos' : 'Sem links';
-      document.getElementById('status-pagamento').style.display = 'flex';
-      document.getElementById('status-pagamento').style.flexDirection = 'column';
     }
   }
 
-  async function criarPreferencia(preco, excluir) {
-    const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${MP_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items: [{ title: 'Mentoria — Acelera Shopee', quantity: 1, unit_price: preco, currency_id: 'BRL' }],
-        back_urls: { success: `${URL_BASE}/agendar.html`, failure: `${URL_BASE}/agendar.html`, pending: `${URL_BASE}/agendar.html` },
-        auto_return: 'approved',
-        statement_descriptor: 'MENTORIA SHOPEE',
-        payment_methods: { excluded_payment_types: excluir.map(id => ({id})) }
-      })
-    });
-    const data = await res.json();
-    if (!data.init_point) throw new Error('Erro ao criar preferência');
-    return data;
-  }
-
-  async function gerarLinkPagamento() {
+  // Preço da mentoria é lido direto pelo backend (api-pagamentos/api/reservar.js)
+  // na hora de gerar o pagamento -- não precisa mais gerar link nenhum aqui,
+  // nem guardar token do Mercado Pago no navegador ou no Firebase.
+  async function salvarPreco() {
     const preco = parseFloat(document.getElementById('preco').value);
     const taxa  = parseFloat(document.getElementById('taxa').value);
     if (!preco || preco < 1) { mostrarAviso('aviso-pagamento', 'Digite o valor do Pix!', 'erro'); return; }
     if (!taxa  || taxa < 0)  { mostrarAviso('aviso-pagamento', 'Digite a taxa do cartão!', 'erro'); return; }
     const precoCard = Math.round((preco / (1 - taxa / 100)) * 100) / 100;
     const btn = document.getElementById('btn-gerar');
-    btn.textContent = 'Gerando...'; btn.disabled = true;
+    btn.textContent = 'Salvando...'; btn.disabled = true;
     try {
-      const [pix, card] = await Promise.all([
-        criarPreferencia(preco,     ['credit_card', 'debit_card', 'ticket', 'prepaid_card']),
-        criarPreferencia(precoCard, ['bank_transfer', 'ticket', 'prepaid_card'])
-      ]);
       await fetch(`${DB}/config.json`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          preco, taxa,
-          pixPreco: preco,   pixUrl: pix.init_point,   pixId: pix.id,
-          cardPreco: precoCard, cardUrl: card.init_point, cardId: card.id,
-          checkoutUrl: pix.init_point,
-          mpToken: MP_TOKEN, atualizadoEm: Date.now()
-        })
+        body: JSON.stringify({ preco, taxa, pixPreco: preco, cardPreco: precoCard, atualizadoEm: Date.now() })
       });
-      document.getElementById('ps-pix').textContent  = 'R$ ' + preco.toLocaleString('pt-BR', {minimumFractionDigits:2});
-      document.getElementById('ps-card').textContent = 'R$ ' + precoCard.toLocaleString('pt-BR', {minimumFractionDigits:2});
-      document.getElementById('ps-status').textContent = '✓ Links ativos';
-      document.getElementById('status-pagamento').style.display = 'flex';
-      document.getElementById('status-pagamento').style.flexDirection = 'column';
-      mostrarAviso('aviso-pagamento', '✓ Links gerados com sucesso!', 'ok');
+      mostrarAviso('aviso-pagamento', '✓ Preço salvo com sucesso!', 'ok');
     } catch(e) {
-      mostrarAviso('aviso-pagamento', 'Erro ao gerar links. Tente novamente.', 'erro');
+      mostrarAviso('aviso-pagamento', 'Erro ao salvar. Tente novamente.', 'erro');
     }
-    btn.textContent = '⚡ Gerar links de pagamento'; btn.disabled = false;
+    btn.textContent = '💾 Salvar preço'; btn.disabled = false;
   }
 
   function mostrarAviso(id, msg, tipo) {
@@ -779,16 +738,6 @@
 
   const d = new Date();
   document.getElementById('dataHoje').textContent = d.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-
-  if (!localStorage.getItem('mp_token')) {
-    const token = prompt('Cole aqui o seu Access Token do Mercado Pago (começa com APP_USR-):');
-    if (token && token.startsWith('APP_USR-')) {
-      localStorage.setItem('mp_token', token);
-      location.reload();
-    } else if (token) {
-      alert('Token inválido. Recarregue a página e tente novamente.');
-    }
-  }
 
   carregarConfig();
   carregarSlots();
