@@ -25,6 +25,7 @@ module.exports = async (req, res) => {
   const slotId = String(req.body?.slotId || '').trim()
   const nome   = String(req.body?.nome ?? '').trim()
   const tel    = String(req.body?.tel ?? '').trim()
+  const metodo = req.body?.metodo === 'card' ? 'card' : 'pix'
   if (!slotId || !nome || !tel) {
     return res.status(400).json({ error: 'Preencha nome, WhatsApp e escolha um horário.' })
   }
@@ -38,10 +39,18 @@ module.exports = async (req, res) => {
 
   const configRes = await fetch(`${DB}/config.json`)
   const config = (await configRes.json()) || {}
-  const preco = parseFloat(config.preco)
-  if (!preco || preco <= 0) {
+  const precoPix = parseFloat(config.preco)
+  if (!precoPix || precoPix <= 0) {
     return res.status(500).json({ error: 'Preço da mentoria não configurado.' })
   }
+  const taxa = parseFloat(config.taxa) || 0
+  // Cartao cobre a taxa do Mercado Pago, pra sempre render o valor liquido
+  // do Pix independente da forma de pagamento escolhida.
+  const precoCard = taxa ? Math.round((precoPix / (1 - taxa / 100)) * 100) / 100 : precoPix
+  const preco = metodo === 'card' ? precoCard : precoPix
+  const excludedTypes = metodo === 'card'
+    ? ['bank_transfer', 'ticket', 'prepaid_card']
+    : ['credit_card', 'debit_card', 'ticket', 'prepaid_card']
 
   // Trava o horario (hold temporario) antes de mandar pro pagamento, pra
   // ninguem mais conseguir escolher o mesmo enquanto essa pessoa paga.
@@ -75,6 +84,7 @@ module.exports = async (req, res) => {
         auto_return: 'approved',
         notification_url: `https://${req.headers.host}/api/webhook`,
         statement_descriptor: 'MENTORIA SHOPEE',
+        payment_methods: { excluded_payment_types: excludedTypes.map(id => ({ id })) },
       }),
     })
     const pref = await prefRes.json()
