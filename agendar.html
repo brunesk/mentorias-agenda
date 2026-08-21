@@ -113,6 +113,7 @@
     <div class="header-tag">Acelera Shopee</div>
     <h1>Mentoria com Bruno</h1>
     <p>Aprenda a vender mais na Shopee com quem já fez.</p>
+    <div id="preco-hero" style="margin-top:16px; min-height:40px;"></div>
     <div id="proxima-data" style="margin-top:12px; min-height:28px;"></div>
   </div>
 
@@ -239,6 +240,15 @@
         ? precoAtual.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
       document.getElementById('preco-card').textContent = precoCardAtual
         ? precoCardAtual.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
+      const precoHero = document.getElementById('preco-hero');
+      if (precoHero && precoAtual) {
+        precoHero.innerHTML = `
+          <div style="display:inline-flex; align-items:baseline; gap:8px; background:var(--orange-dim); border:1px solid rgba(255,102,0,0.25); border-radius:14px; padding:10px 20px;">
+            <span style="font-size:12px; color:var(--muted);">Investimento</span>
+            <span style="font-size:26px; font-weight:900; color:var(--orange);">R$ ${precoAtual.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+            <span style="font-size:11px; color:var(--muted);">no Pix</span>
+          </div>`;
+      }
       if (config.whatsapp) {
         const num = config.whatsapp.replace(/\D/g,'');
         document.getElementById('link-whatsapp').href = `https://wa.me/55${num}`;
