@@ -242,7 +242,7 @@
     document.getElementById('lista').innerHTML = `
       <div class="form-section">
         <div class="form-section-title">📅 Novo horário disponível</div>
-        <div class="hint"><strong>Regras:</strong> Sem quartas · Após 18h · Sáb de manhã · 1 por dia</div>
+        <div class="hint">Qualquer dia e horário. Vários horários no mesmo dia são permitidos.</div>
         <div class="row-2">
           <div class="field">
             <label>Data</label>
@@ -396,13 +396,9 @@
     const data = document.getElementById('data').value;
     const hora = document.getElementById('hora').value;
     if (!data || !hora) { alert('Selecione data e horário!'); return; }
-    const d = new Date(data + 'T00:00:00');
-    const dia = d.getDay();
-    if (dia === 3) { alert('Bruno não dá mentoria às quartas!'); return; }
-    const h = parseInt(hora.split(':')[0]);
-    if (dia === 6) { if (h >= 13) { alert('Sábado só de manhã!'); return; } }
-    else { if (h < 18) { alert('Apenas após 18h!'); return; } }
-    if (Object.values(todosSlots).some(s => s.data === data)) { alert('Já existe horário para essa data!'); return; }
+    if (Object.values(todosSlots).some(s => s.data === data && s.hora === hora)) {
+      alert('Já existe um horário cadastrado nesse dia e hora!'); return;
+    }
     await fetch(`${DB}/slots.json`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data, hora, disponivel: true, clienteNome: null, clienteTel: null, criadoEm: Date.now() })
@@ -418,12 +414,9 @@
   }
 
   function validarData() {
-    const data = document.getElementById('data').value;
-    if (!data) return;
+    // Sem restrição de dia ou horário: qualquer data e hora podem ser liberadas.
     const aviso = document.getElementById('aviso-data');
-    if (!aviso) return;
-    if (new Date(data + 'T00:00:00').getDay() === 3) { aviso.textContent = '⚠️ Quarta-feira — Bruno não dá mentoria.'; aviso.style.display = 'block'; }
-    else aviso.style.display = 'none';
+    if (aviso) aviso.style.display = 'none';
   }
 
   // ─── AGENDAR MANUALMENTE ──────────────────────────────────────────

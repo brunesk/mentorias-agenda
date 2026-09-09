@@ -213,7 +213,7 @@
     <!-- NOVO HORÁRIO -->
     <div>
       <div class="section-title">Novo horário disponível</div>
-      <div class="hint"><strong>Regras:</strong> Sem quartas · Após 18h · Sáb de manhã · 1 por dia</div>
+      <div class="hint">Qualquer dia e horário. Vários horários no mesmo dia são permitidos.</div>
       <div style="margin-top:12px;">
         <div class="row-2">
           <div class="field">
@@ -390,14 +390,8 @@
     const data = document.getElementById('data').value;
     const hora = document.getElementById('hora').value;
     if (!data || !hora) { alert('Selecione data e horário!'); return; }
-    const d = new Date(data + 'T00:00:00');
-    const dia = d.getDay();
-    if (dia === 3) { alert('Bruno não dá mentoria às quartas!'); return; }
-    const h = parseInt(hora.split(':')[0]);
-    if (dia === 6) { if (h >= 13) { alert('Sábado só de manhã!'); return; } }
-    else { if (h < 18) { alert('Apenas após 18h!'); return; } }
-    const jaTemNaData = Object.values(todosSlots).some(s => s.data === data);
-    if (jaTemNaData) { alert('Já existe horário para essa data!'); return; }
+    const jaExiste = Object.values(todosSlots).some(s => s.data === data && s.hora === hora);
+    if (jaExiste) { alert('Já existe um horário cadastrado nesse dia e hora!'); return; }
     await fetch(`${DB}/slots.json`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data, hora, disponivel: true, clienteNome: null, clienteTel: null, criadoEm: Date.now() })
@@ -432,12 +426,6 @@
   async function confirmarLiberar() {
     const hora = document.getElementById('liberar-hora').value;
     if (!hora) { alert('Selecione um horário!'); return; }
-    const d = new Date(dataParaLiberar + 'T00:00:00');
-    const dia = d.getDay();
-    if (dia === 3) { alert('Bruno não dá mentoria às quartas!'); return; }
-    const h = parseInt(hora.split(':')[0]);
-    if (dia === 6) { if (h >= 13) { alert('Sábado só de manhã!'); return; } }
-    else { if (h < 18) { alert('Apenas após 18h!'); return; } }
     await fetch(`${DB}/slots.json`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: dataParaLiberar, hora, disponivel: true, clienteNome: null, clienteTel: null, criadoEm: Date.now() })
@@ -491,12 +479,9 @@
 
   // ─── VALIDAÇÃO ────────────────────────────────────────────────────
   function validarData() {
-    const data = document.getElementById('data').value;
-    if (!data) return;
-    const d = new Date(data + 'T00:00:00');
+    // Sem restrição de dia ou horário: qualquer data e hora podem ser liberadas.
     const aviso = document.getElementById('aviso-data');
-    if (d.getDay() === 3) { aviso.textContent = '⚠️ Quarta-feira — Bruno não dá mentoria.'; aviso.style.display = 'block'; }
-    else aviso.style.display = 'none';
+    if (aviso) aviso.style.display = 'none';
   }
 
   // ─── RENDER ───────────────────────────────────────────────────────
