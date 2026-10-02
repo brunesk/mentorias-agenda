@@ -8,7 +8,7 @@
 // horario de volta sozinho.
 
 const DB = 'https://mentorias-bruno-default-rtdb.firebaseio.com'
-const SITE_URL = 'https://brunesk.github.io/mentorias-agenda'
+const SITE_URL = 'https://mentoria.obrunoferracini.com.br'
 const HOLD_MINUTES = 15
 
 const CORS = {
