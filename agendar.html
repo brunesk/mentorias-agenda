@@ -186,6 +186,92 @@
   .badge-hoje   { background:var(--orange); color:var(--on-orange); }
   .badge-amanha { background:var(--orange-dim); color:var(--orange-soft); border:1px solid var(--orange-line); }
 
+  /* ── CALENDÁRIO ────────────────────────────────────── */
+  /* Mês atual + seguinte. Dias lotados aparecem em verde escuro e não clicam,
+     pra quem chega enxergar a agenda enchendo e só as datas que sobraram. */
+  .cal-wrap { display:flex; flex-direction:column; gap:var(--s5); margin-bottom:var(--s5); }
+  .cal {
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--r-lg); padding:var(--s4);
+  }
+  .cal-head { display:flex; align-items:baseline; justify-content:space-between; gap:var(--s3); margin-bottom:var(--s2); }
+  .cal-mes { font-size:16px; font-weight:800; letter-spacing:-.015em; text-transform:capitalize; white-space:nowrap; }
+  .cal-ocup { font-size:12.5px; color:var(--muted-strong); text-align:right; }
+  .cal-ocup strong { color:var(--green); font-weight:700; }
+  .cal-barra { height:4px; background:var(--line); border-radius:99px; overflow:hidden; margin-bottom:var(--s4); }
+  .cal-barra > i { display:block; height:100%; background:linear-gradient(90deg, #1d7a44, var(--green)); border-radius:99px; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); gap:5px; }
+  .cal-sem { text-align:center; font-size:11px; font-weight:700; color:var(--muted); padding-bottom:var(--s1); }
+  .dia {
+    aspect-ratio:1; min-width:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    font-family:inherit; font-size:14px; font-weight:600; line-height:1;
+    border-radius:var(--r-sm); border:1px solid transparent; background:none; color:var(--muted);
+  }
+  .dia.off { opacity:.45; }
+  .dia.hoje { box-shadow:inset 0 -2px 0 var(--muted); }
+  .dia.cheio {
+    background:#0e2a1a; border-color:#17462b; color:#4a9a68;
+    cursor:not-allowed; text-decoration:line-through; text-decoration-color:rgba(74,154,104,.5);
+  }
+  .dia.livre {
+    background:var(--orange-dim); border-color:var(--orange-line); color:var(--text);
+    font-weight:800; cursor:pointer;
+    transition:background .18s var(--ease), border-color .18s var(--ease), transform .18s var(--ease);
+  }
+  .dia.livre:hover { border-color:var(--orange); }
+  .dia.livre:active { transform:scale(.94); }
+  .dia.livre[aria-pressed="true"] {
+    background:var(--orange); border-color:var(--orange); color:var(--on-orange);
+    box-shadow:0 6px 20px rgba(255,102,0,.3);
+  }
+  .dia-pt { width:5px; height:5px; border-radius:50%; background:var(--orange); }
+  .dia.livre[aria-pressed="true"] .dia-pt { background:var(--on-orange); }
+
+  .cal-legenda {
+    display:flex; flex-wrap:wrap; justify-content:center; gap:var(--s2) var(--s4);
+    font-size:12.5px; color:var(--muted-strong); margin-bottom:var(--s5);
+  }
+  .cal-legenda span { display:inline-flex; align-items:center; gap:6px; }
+  .cal-legenda i { width:12px; height:12px; border-radius:4px; display:inline-block; }
+  .lg-livre { background:var(--orange-dim); border:1px solid var(--orange); }
+  .lg-cheio { background:#0e2a1a; border:1px solid #17462b; }
+
+  .urgencia {
+    display:flex; align-items:center; gap:var(--s3);
+    background:var(--red-dim); border:1px solid rgba(255,90,82,.3);
+    border-radius:var(--r-md); padding:var(--s3) var(--s4); margin-bottom:var(--s5);
+    font-size:13.5px; line-height:1.45; color:var(--muted-strong);
+  }
+  .urgencia strong { color:var(--text); }
+  .urgencia-pulso {
+    flex-shrink:0; width:9px; height:9px; border-radius:50%; background:var(--red);
+    box-shadow:0 0 0 0 rgba(255,90,82,.6); animation:pulso 1.8s infinite;
+  }
+  @keyframes pulso { 70% { box-shadow:0 0 0 9px rgba(255,90,82,0); } 100% { box-shadow:0 0 0 0 rgba(255,90,82,0); } }
+
+  .horas-titulo { font-size:14.5px; font-weight:700; margin-bottom:var(--s3); }
+  .horas-titulo span { color:var(--muted); font-weight:500; }
+  .horas { display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:var(--s2); margin-bottom:var(--s7); }
+  .hora {
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    min-height:58px; justify-content:center;
+    font-family:inherit; font-size:16px; font-weight:800; color:var(--orange-soft);
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-radius:var(--r-md); cursor:pointer;
+    transition:border-color .18s var(--ease), background .18s var(--ease), transform .18s var(--ease);
+  }
+  .hora:hover { border-color:var(--orange); background:var(--orange-dim); }
+  .hora:active { transform:scale(.97); }
+  .hora small { font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .hora[aria-pressed="true"] { background:var(--orange); border-color:var(--orange); color:var(--on-orange); }
+  .hora[aria-pressed="true"] small { color:var(--on-orange); }
+  .hora:disabled {
+    background:#0e2a1a; border-color:#17462b; color:#4a9a68; cursor:not-allowed;
+    text-decoration:line-through; text-decoration-color:rgba(74,154,104,.5);
+  }
+  .hora:disabled small { color:#4a9a68; text-decoration:none; }
+
   /* Esqueleto de carregamento — mesma altura das linhas reais, sem pulo de layout */
   .sk { display:flex; flex-direction:column; gap:var(--s2); }
   .sk-row {
@@ -412,7 +498,7 @@
 
     <div class="step" id="step-horario">
       <span class="step-n" aria-hidden="true">1</span>
-      <h2 class="step-t">Escolha seu horário</h2>
+      <h2 class="step-t">Escolha o dia e o horário</h2>
     </div>
 
     <div id="slots-container" aria-live="polite">
@@ -640,37 +726,124 @@
     renderSlots(todosSlots);
   }
 
+  // Mostra o mês atual e o seguinte. Dia com vaga = laranja e clicável;
+  // dia em que todos os horários já foram reservados = verde escuro, travado.
+  const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  let porDia = {};
+
+  function isoDia(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
   function renderSlots(todosSlots) {
     const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const disponiveis = Object.entries(todosSlots)
-      .filter(([_,s]) => s && s.disponivel === true && typeof s.data === 'string' && typeof s.hora === 'string')
-      .filter(([_,s]) => new Date(s.data+'T00:00:00') >= hoje)
-      .map(([id,s]) => ({id,...s}))
-      .sort((a,b) => (a.data+a.hora).localeCompare(b.data+b.hora));
+    const hojeIso = isoDia(hoje);
+    const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const fim    = new Date(hoje.getFullYear(), hoje.getMonth() + 2, 0);
+    const inicioIso = isoDia(inicio), fimIso = isoDia(fim);
+
+    porDia = {};
+    Object.entries(todosSlots)
+      .filter(([_,s]) => s && typeof s.data === 'string' && typeof s.hora === 'string')
+      .filter(([_,s]) => s.data >= inicioIso && s.data <= fimIso)
+      .forEach(([id,s]) => (porDia[s.data] = porDia[s.data] || []).push({id, data:s.data, hora:s.hora, livre: s.disponivel === true}));
+    Object.values(porDia).forEach(l => l.sort((a,b) => a.hora.localeCompare(b.hora)));
+
+    // Horário livre em dia que já passou não conta como vaga
+    const temLivre = d => d >= hojeIso && porDia[d].some(s => s.livre);
+    const diasLivres = Object.keys(porDia).filter(temLivre).sort();
+    const vagasLivres = diasLivres.reduce((n,d) => n + porDia[d].filter(s => s.livre).length, 0);
 
     const container = $('slots-container');
-    if (!disponiveis.length) {
-      container.innerHTML =
-        `<div class="vazio"><div class="emoji" aria-hidden="true">📭</div>
-         <p>Nenhum horário disponível no momento.<br>Os novos horários saem nos Stories de
-         <a class="link-wa" href="https://instagram.com/brunoferracini" target="_blank" rel="noopener">@brunoferracini</a>.</p></div>`;
+    if (!Object.keys(porDia).length) {
+      container.innerHTML = vazioHtml();
       return;
     }
 
-    container.innerHTML = `<div class="slots">${disponiveis.map(s => `
-      <button type="button" class="slot" id="slot-${s.id}" aria-pressed="false"
-              onclick="selecionarSlot('${s.id}','${s.data}','${s.hora}')">
-        <span class="slot-left">
-          <span class="slot-dia">${diaSemanaFull(s.data)}${getBadge(s.data)}</span>
-          <span class="slot-data">${fmt(s.data)}</span>
-        </span>
-        <span class="slot-hora">${esc(s.hora)}</span>
-      </button>`).join('')}</div>`;
+    let html = '';
+    if (vagasLivres) {
+      html += `<div class="urgencia" role="status"><span class="urgencia-pulso" aria-hidden="true"></span>
+        <span>${vagasLivres === 1 ? '<strong>Resta só 1 horário livre</strong>' : `<strong>Restam só ${vagasLivres} horários livres</strong>`}
+        nos próximos 2 meses. Quando fechar, a próxima agenda só abre no mês seguinte.</span></div>`;
+    }
+
+    html += '<div class="cal-wrap">';
+    for (let k = 0; k < 2; k++) {
+      const ref = new Date(hoje.getFullYear(), hoje.getMonth() + k, 1);
+      const ano = ref.getFullYear(), mes = ref.getMonth();
+      const nDias = new Date(ano, mes + 1, 0).getDate();
+      const prefixo = `${ano}-${String(mes+1).padStart(2,'0')}`;
+
+      const doMes = Object.keys(porDia).filter(d => d.startsWith(prefixo)).flatMap(d => porDia[d]);
+      const ocupados = doMes.filter(s => !s.livre).length;
+      const ocup = doMes.length
+        ? `<span class="cal-ocup"><strong>${ocupados} de ${doMes.length}</strong> vagas preenchidas</span>`
+        : '';
+
+      let cel = ['D','S','T','Q','Q','S','S'].map(l => `<span class="cal-sem" aria-hidden="true">${l}</span>`).join('');
+      for (let i = 0; i < ref.getDay(); i++) cel += '<span></span>';
+      for (let dia = 1; dia <= nDias; dia++) {
+        const iso = `${prefixo}-${String(dia).padStart(2,'0')}`;
+        const slots = porDia[iso];
+        const ehHoje = iso === hojeIso ? ' hoje' : '';
+        if (slots && temLivre(iso)) {
+          cel += `<button type="button" class="dia livre${ehHoje}" id="dia-${iso}" aria-pressed="false"
+                    aria-label="${dia} de ${MESES[mes]}, horário disponível" onclick="selecionarDia('${iso}')">
+                    ${dia}<span class="dia-pt" aria-hidden="true"></span></button>`;
+        } else if (slots && slots.some(s => !s.livre)) {
+          cel += `<button type="button" class="dia cheio${ehHoje}" disabled aria-label="${dia} de ${MESES[mes]}, agenda lotada" title="Agenda lotada">${dia}</button>`;
+        } else {
+          cel += `<span class="dia off${ehHoje}">${dia}</span>`;
+        }
+      }
+
+      html += `<div class="cal">
+        <div class="cal-head"><span class="cal-mes">${MESES[mes]} ${ano}</span>${ocup}</div>
+        ${doMes.length ? `<div class="cal-barra" aria-hidden="true"><i style="width:${Math.round(ocupados / doMes.length * 100)}%"></i></div>` : ''}
+        <div class="cal-grid">${cel}</div>
+      </div>`;
+    }
+    html += '</div>';
+    html += `<div class="cal-legenda" aria-hidden="true">
+      <span><i class="lg-livre"></i>Disponível</span>
+      <span><i class="lg-cheio"></i>Lotado</span>
+    </div>`;
+    html += `<div id="horas-dia">${vagasLivres ? '' : vazioHtml()}</div>`;
+
+    container.innerHTML = html;
+    // Já abre os horários do dia livre mais próximo, pra pessoa não ter que procurar
+    if (diasLivres.length) selecionarDia(diasLivres[0], true);
+  }
+
+  function vazioHtml() {
+    return `<div class="vazio"><div class="emoji" aria-hidden="true">📭</div>
+      <p>Agenda lotada no momento.<br>Os novos horários saem nos Stories de
+      <a class="link-wa" href="https://instagram.com/brunoferracini" target="_blank" rel="noopener">@brunoferracini</a>.</p></div>`;
+  }
+
+  function selecionarDia(iso, inicial) {
+    document.querySelectorAll('.dia.livre').forEach(b => b.setAttribute('aria-pressed','false'));
+    const btn = $('dia-'+iso);
+    if (btn) btn.setAttribute('aria-pressed','true');
+
+    const [a,m,d] = iso.split('-');
+    const slots = porDia[iso] || [];
+    $('horas-dia').innerHTML =
+      `<p class="horas-titulo">${diaSemanaFull(iso)}, ${d}/${m}${getBadge(iso)} <span>· escolha o horário</span></p>
+       <div class="horas">${slots.map(s => s.livre
+         ? `<button type="button" class="hora" id="slot-${s.id}" aria-pressed="false"
+              onclick="selecionarSlot('${s.id}','${s.data}','${esc(s.hora)}')">${esc(s.hora)}<small>Livre</small></button>`
+         : `<button type="button" class="hora" disabled aria-label="${esc(s.hora)}, reservado">${esc(s.hora)}<small>Reservado</small></button>`
+       ).join('')}</div>`;
+
+    slotSelecionado = null;
+    $('form-card').classList.remove('visible');
+    if (!inicial) $('horas-dia').scrollIntoView({behavior:'smooth', block:'nearest'});
   }
 
   function selecionarSlot(id, data, hora) {
     slotSelecionado = {id, data, hora};
-    document.querySelectorAll('.slot').forEach(s => s.setAttribute('aria-pressed','false'));
+    document.querySelectorAll('.hora').forEach(s => s.setAttribute('aria-pressed','false'));
     const alvo = $('slot-'+id);
     if (alvo) alvo.setAttribute('aria-pressed','true');
 
